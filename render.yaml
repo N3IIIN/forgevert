@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: morph
+    name: forgevert
     runtime: docker
     dockerfilePath: ./Dockerfile
     plan: starter          # $7/Monat, 512MB RAM, always-on
