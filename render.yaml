@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: morph
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter          # $7/Monat, 512MB RAM, always-on
+    healthCheckPath: /api/health
+    envVars:
+      - key: MAX_FILE_MB
+        value: "500"
+      - key: WEB_CONCURRENCY
+        value: "1"         # 1 Worker reicht für Starter-Plan (512MB RAM)

@@ -1,0 +1,408 @@
+﻿<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Converter Admin</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D1117;--bg2:#161B22;--bg3:#21262D;--border:#30363D;
+  --text:#E6EDF3;--muted:#7D8590;--dim:#484F58;
+  --blue:#3B82F6;--green:#22C55E;--red:#EF4444;--amber:#F59E0B;
+  --radius:10px;
+  --mono:ui-monospace,"Cascadia Code","Fira Mono","Consolas",monospace;
+  --sans:system-ui,-apple-system,sans-serif;
+}
+html{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.5}
+body{min-height:100vh}
+a{color:var(--blue);text-decoration:none}
+
+/* Header */
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:.85rem 2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.logo{font-size:1rem;font-weight:700;color:var(--text)}.logo span{color:var(--blue)}
+.hdr-right{display:flex;align-items:center;gap:.6rem;margin-left:auto;flex-wrap:wrap}
+.hdr-sub{font-size:.74rem;color:var(--muted)}
+.hdr-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.28rem .75rem;font-size:.77rem;cursor:pointer;transition:background .15s;text-decoration:none;display:inline-block;line-height:1.6}
+.hdr-btn:hover{background:var(--border)}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:.35rem;flex-shrink:0}
+
+/* Layout */
+main{max-width:1360px;margin:0 auto;padding:1.8rem 2rem 5rem}
+.section-title{font-size:.67rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:2rem 0 .85rem;padding-bottom:.45rem;border-bottom:1px solid var(--border)}
+
+/* Summary Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.9rem}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.3rem}
+.card-val{font-family:var(--mono);font-size:1.9rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:.3rem}
+.card-label{font-size:.71rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.card-sub{font-size:.71rem;color:var(--dim);margin-top:.28rem}
+.card.blue .card-val{color:var(--blue)}.card.green .card-val{color:var(--green)}
+.card.red .card-val{color:var(--red)}.card.amber .card-val{color:var(--amber)}
+
+/* Month Tabs */
+.month-tabs-wrap{overflow-x:auto;padding-bottom:.3rem;margin-bottom:.2rem}
+.month-tabs{display:flex;gap:.45rem;min-width:max-content}
+.mtab{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:.28rem .9rem;font-size:.76rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap}
+.mtab:hover{border-color:var(--blue);color:var(--text)}
+.mtab.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* Chart Controls */
+.chart-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem}
+.chart-title-area{font-size:.85rem;font-weight:600;color:var(--text)}
+.chart-title-area span{color:var(--muted);font-weight:400;font-size:.78rem;margin-left:.5rem}
+.chart-toggle{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px;gap:3px}
+.ctog{background:transparent;border:none;border-radius:5px;padding:.28rem .8rem;font-size:.76rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s}
+.ctog.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+
+/* Chart container */
+.chart-outer{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem 1.5rem;min-height:200px}
+.chart-empty{color:var(--muted);font-size:.82rem;padding:2rem 0;text-align:center}
+.chart-loading{color:var(--muted);font-size:.82rem;padding:2rem 0;text-align:center}
+
+/* Horizontal Bar Chart */
+.hbar-list{display:flex;flex-direction:column;gap:6px}
+.hbar-row{display:grid;grid-template-columns:180px 1fr;align-items:center;gap:.8rem}
+@media(max-width:600px){.hbar-row{grid-template-columns:110px 1fr}}
+.hbar-name{font-family:var(--mono);font-size:.78rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.hbar-track{position:relative;height:22px;background:var(--bg3);border-radius:4px;overflow:hidden;display:flex;align-items:center}
+.hbar-fill{position:absolute;left:0;top:0;height:100%;border-radius:4px;transition:width .35s ease}
+.hbar-val{position:relative;font-family:var(--mono);font-size:.74rem;font-weight:700;padding-left:.5rem;white-space:nowrap}
+
+/* SVG line chart wrapper */
+.svg-wrap{overflow-x:auto}
+.svg-wrap svg{min-width:500px}
+
+/* Format breakdown grids */
+.breakdown-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-top:1.2rem}
+.bk-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.bk-head{padding:.65rem 1rem;border-bottom:1px solid var(--border);font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.bk-row{display:flex;align-items:center;gap:.6rem;padding:.38rem .9rem;border-bottom:1px solid rgba(48,54,61,.4)}
+.bk-row:last-child{border-bottom:none}
+.bk-pos{font-family:var(--mono);font-size:.65rem;color:var(--dim);min-width:1.2rem;text-align:right}
+.bk-name{flex:1;font-size:.78rem;font-family:var(--mono);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bk-count{font-family:var(--mono);font-size:.76rem;font-weight:700;color:var(--blue)}
+
+/* Log table */
+.log-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.79rem}
+th{text-align:left;font-size:.63rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:.48rem .8rem;border-bottom:1px solid var(--border)}
+td{padding:.38rem .8rem;border-bottom:1px solid rgba(48,54,61,.4);font-family:var(--mono);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.025)}
+.badge{display:inline-block;padding:.08rem .42rem;border-radius:4px;font-size:.67rem;font-weight:700;letter-spacing:.04em}
+.bok{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.berr{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.bsrc{background:rgba(99,102,241,.1);color:#818CF8;border:1px solid rgba(99,102,241,.2)}
+.btgt{background:rgba(103,232,249,.08);color:#67E8F9;border:1px solid rgba(103,232,249,.2)}
+.burl{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.bup{color:var(--muted);background:transparent;border:1px solid var(--border)}
+.arrow{color:var(--dim);margin:0 .25rem}
+.ts{color:var(--muted)}.sz{color:var(--dim)}
+.ecell{color:var(--red);font-size:.68rem;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loading{color:var(--muted);font-size:.85rem;padding:3rem;text-align:center}
+.gerr{color:var(--red);padding:1rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;margin:1rem 0;font-size:.85rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Converter <span>Admin</span></div>
+  <div class="hdr-right">
+    <span class="hdr-sub" id="hdr-status"><span class="sdot" style="background:var(--amber)"></span>Lade...</span>
+    <button class="hdr-btn" onclick="loadStats()">Aktualisieren</button>
+    <a href="/" class="hdr-btn">App</a>
+  </div>
+</header>
+
+<main>
+  <div id="root"><div class="loading">Lade Statistiken...</div></div>
+</main>
+
+<script>
+'use strict';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let G = null;
+let MC = {};
+let selMonth = null;
+let chartType = 'bar';
+
+const COLORS = ['#3B82F6','#22C55E','#F59E0B','#EC4899','#8B5CF6','#06B6D4','#F97316','#84CC16','#F43F5E','#A78BFA'];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtN(n){return Number(n).toLocaleString('de-DE');}
+function fmtBytes(b){if(!b)return'0 B';if(b>=1e9)return(b/1e9).toFixed(2)+' GB';if(b>=1e6)return(b/1e6).toFixed(1)+' MB';if(b>=1024)return(b/1024).toFixed(0)+' KB';return b+' B';}
+function fmtTs(ts){const d=new Date(ts*1000);return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});}
+function fmtMonth(m){const[y,mo]=m.split('-');const nm=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];return nm[parseInt(mo,10)-1]+' '+y;}
+
+// ── SVG Line Chart ────────────────────────────────────────────────────────────
+function svgLine(xLabels, series){
+  if(!series.length||!xLabels.length) return '<div class="chart-empty">Keine Daten</div>';
+  const W=920,H=260,pL=46,pB=38,pT=16,pR=156;
+  const iW=W-pL-pR,iH=H-pT-pB,n=xLabels.length;
+  const allV=series.flatMap(function(s){return s.v;});
+  const yMax=Math.max.apply(null,allV.concat([1]));
+  function xOf(i){return pL+(n<=1?iW/2:i/(n-1)*iW);}
+  function yOf(v){return pT+iH-(v/yMax*iH);}
+
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">';
+
+  // Horizontal grid lines + Y labels
+  for(let i=0;i<=4;i++){
+    const y=pT+iH/4*i;
+    const val=Math.round(yMax*(1-i/4));
+    svg+='<line x1="'+pL+'" y1="'+y.toFixed(0)+'" x2="'+(pL+iW)+'" y2="'+y.toFixed(0)+'" stroke="#21262D" stroke-width="1"/>';
+    svg+='<text x="'+(pL-7)+'" y="'+(y+4).toFixed(0)+'" text-anchor="end" font-size="10" fill="#484F58">'+val+'</text>';
+  }
+
+  // X labels (max ~16 visible)
+  const step=Math.ceil(n/16);
+  xLabels.forEach(function(lbl,i){
+    if(i%step===0||i===n-1){
+      svg+='<text x="'+xOf(i).toFixed(0)+'" y="'+(pT+iH+20).toFixed(0)+'" text-anchor="middle" font-size="10" fill="#7D8590">'+esc(lbl)+'</text>';
+    }
+  });
+
+  // Lines + dots
+  series.forEach(function(ser,si){
+    const col=COLORS[si%COLORS.length];
+    let d='';
+    ser.v.forEach(function(v,i){d+=(i===0?'M':'L')+xOf(i).toFixed(1)+','+yOf(v).toFixed(1)+' ';});
+    if(d.trim()) svg+='<path d="'+d.trim()+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    // Area fill (light)
+    if(n>=2){
+      let area='M'+xOf(0).toFixed(1)+','+(pT+iH)+' ';
+      ser.v.forEach(function(v,i){area+='L'+xOf(i).toFixed(1)+','+yOf(v).toFixed(1)+' ';});
+      area+='L'+xOf(n-1).toFixed(1)+','+(pT+iH)+' Z';
+      svg+='<path d="'+area+'" fill="'+col+'" opacity="0.07"/>';
+    }
+    // Dots (only if <=35 points)
+    if(n<=35){
+      ser.v.forEach(function(v,i){
+        svg+='<circle cx="'+xOf(i).toFixed(1)+'" cy="'+yOf(v).toFixed(1)+'" r="3.5" fill="'+col+'" stroke="#0D1117" stroke-width="1.5"><title>'+esc(xLabels[i])+': '+v+'</title></circle>';
+      });
+    }
+    // Legend
+    const lx=pL+iW+14,ly=pT+8+si*22;
+    svg+='<circle cx="'+(lx+7)+'" cy="'+ly+'" r="5" fill="'+col+'" opacity="0.85"/>';
+    const nm=ser.name.length>18?ser.name.slice(0,17)+'…':ser.name;
+    svg+='<text x="'+(lx+16)+'" y="'+(ly+4).toFixed(0)+'" font-size="10" fill="#7D8590">'+esc(nm)+'</text>';
+  });
+
+  // Axes
+  svg+='<line x1="'+pL+'" y1="'+pT+'" x2="'+pL+'" y2="'+(pT+iH)+'" stroke="#30363D" stroke-width="1"/>';
+  svg+='<line x1="'+pL+'" y1="'+(pT+iH)+'" x2="'+(pL+iW)+'" y2="'+(pT+iH)+'" stroke="#30363D" stroke-width="1"/>';
+  return svg+'</svg>';
+}
+
+// ── Horizontal Bar Chart ──────────────────────────────────────────────────────
+function hBar(pairs){
+  if(!pairs||!pairs.length) return '<div class="chart-empty">Keine Formate aufgezeichnet</div>';
+  const max=pairs[0][1]||1;
+  return '<div class="hbar-list">'+pairs.map(function(p,i){
+    const name=p[0],count=p[1];
+    const pct=(count/max*100).toFixed(1);
+    const col=COLORS[i%COLORS.length];
+    return '<div class="hbar-row">'
+      +'<div class="hbar-name" title="'+esc(name)+'">'+esc(name)+'</div>'
+      +'<div class="hbar-track">'
+        +'<div class="hbar-fill" style="width:'+pct+'%;background:'+col+'22;border-right:3px solid '+col+'"></div>'
+        +'<span class="hbar-val" style="color:'+col+'">'+fmtN(count)+'</span>'
+      +'</div>'
+    +'</div>';
+  }).join('')+'</div>';
+}
+
+// ── Small breakdown list ──────────────────────────────────────────────────────
+function bkList(title,items){
+  if(!items||!items.length) return '<div class="bk-card"><div class="bk-head">'+title+'</div><div style="padding:.8rem 1rem;color:var(--muted);font-size:.78rem">Keine Daten</div></div>';
+  const rows=items.slice(0,10).map(function(p,i){
+    return '<div class="bk-row"><span class="bk-pos">'+(i+1)+'</span><span class="bk-name" title="'+esc(p[0])+'">'+esc(p[0])+'</span><span class="bk-count">'+fmtN(p[1])+'</span></div>';
+  }).join('');
+  return '<div class="bk-card"><div class="bk-head">'+title+'</div>'+rows+'</div>';
+}
+
+// ── Render Cards ──────────────────────────────────────────────────────────────
+function renderCards(ok,err,bytes,sub){
+  const total=ok+err,rate=total>0?((ok/total)*100).toFixed(1)+'%':'--';
+  return '<div class="cards">'
+    +'<div class="card blue"><div class="card-val">'+fmtN(ok)+'</div><div class="card-label">Erfolgreiche Konvertierungen</div></div>'
+    +'<div class="card red"><div class="card-val">'+fmtN(err)+'</div><div class="card-label">Fehler</div></div>'
+    +'<div class="card green"><div class="card-val">'+rate+'</div><div class="card-label">Erfolgsrate</div></div>'
+    +'<div class="card amber"><div class="card-val">'+fmtBytes(bytes)+'</div><div class="card-label">Daten verarbeitet</div>'+(sub?'<div class="card-sub">'+esc(sub)+'</div>':'')+'</div>'
+  +'</div>';
+}
+
+// ── Render Month Tabs ─────────────────────────────────────────────────────────
+function renderTabs(months){
+  const tabs=['<button class="mtab'+(selMonth===null?' active':'')+'" onclick="pickMonth(null)">Gesamt</button>'];
+  months.slice().reverse().forEach(function(m){
+    tabs.push('<button class="mtab'+(selMonth===m.month?' active':'')+'" onclick="pickMonth(\''+m.month+'\')">'+fmtMonth(m.month)+'</button>');
+  });
+  return '<div class="month-tabs-wrap"><div class="month-tabs">'+tabs.join('')+'</div></div>';
+}
+
+// ── Render Chart Section ──────────────────────────────────────────────────────
+function renderChartSection(pairs, title, note){
+  const toggle='<div class="chart-controls">'
+    +'<div class="chart-title-area">'+title+'<span>'+esc(note)+'</span></div>'
+    +'<div class="chart-toggle">'
+      +'<button class="ctog'+(chartType==='bar'?' active':'')+'" onclick="setChart(\'bar\')">Balken</button>'
+      +'<button class="ctog'+(chartType==='line'?' active':'')+'" onclick="setChart(\'line\')">Linie</button>'
+    +'</div>'
+  +'</div>';
+
+  let chartHTML='';
+  if(chartType==='bar'){
+    chartHTML=hBar(pairs);
+  } else {
+    // Line chart: build series from context
+    chartHTML='<div class="svg-wrap">'+buildLineChart()+'</div>';
+  }
+  return toggle+'<div class="chart-outer">'+chartHTML+'</div>';
+}
+
+// Build line chart from current state
+function buildLineChart(){
+  if(selMonth===null){
+    // Gesamt: months on X, OK line + Err line
+    if(!G||!G.by_month.length) return '<div class="chart-empty">Keine Monatsdaten</div>';
+    const xLabels=G.by_month.map(function(m){return fmtMonth(m.month);});
+    const series=[
+      {name:'Erfolge',v:G.by_month.map(function(m){return m.ok;})},
+      {name:'Fehler', v:G.by_month.map(function(m){return m.err;})}
+    ];
+    // Also top 3 pairs over months (pre-build per-month pair breakdown)
+    const topPairs=G.top_pairs.slice(0,5).map(function(p){return p[0];});
+    // Build per-month count for each top pair from monthly cache or skip
+    // For now just show ok/err lines for Gesamt
+    return svgLine(xLabels,series);
+  } else {
+    // Month: days on X, top pairs as lines
+    const md=MC[selMonth];
+    if(!md) return '<div class="chart-empty">Lade...</div>';
+    const xLabels=md.by_day.map(function(d){return String(d.day);});
+    // Get top 7 pairs
+    const topP=md.pairs.slice(0,7).map(function(p){return p[0];});
+    if(!topP.length){
+      // Just show ok/err
+      const series=[
+        {name:'Erfolge',v:md.by_day.map(function(d){return d.ok;})},
+        {name:'Fehler', v:md.by_day.map(function(d){return d.err;})}
+      ];
+      return svgLine(xLabels,series);
+    }
+    const series=topP.map(function(pair){
+      return {name:pair,v:md.by_day.map(function(d){return d.pairs[pair]||0;})};
+    });
+    return svgLine(xLabels,series);
+  }
+}
+
+// ── Render Log ────────────────────────────────────────────────────────────────
+function renderLog(recent){
+  if(!recent||!recent.length) return '<div style="color:var(--muted);font-size:.82rem;padding:1rem">Noch keine Konvertierungen.</div>';
+  const rows=[...recent].reverse().map(function(r){
+    const ok=r.ok!==false;
+    const st=ok?'<span class="badge bok">OK</span>':'<span class="badge berr">Fehler</span>';
+    const src='<span class="badge bsrc">'+esc(r.src||'?')+'</span>';
+    const tgt='<span class="badge btgt">'+esc(r.tgt||'?')+'</span>';
+    const sou=r.source==='url'?'<span class="badge burl">URL</span>':r.source==='batch'?'<span class="badge" style="background:rgba(16,185,129,.1);color:#34D399;border:1px solid rgba(16,185,129,.25)">Batch</span>':'<span class="badge bup">Upload</span>';
+    const last=ok?'<span class="sz">'+fmtBytes(r.size||0)+'</span>':'<span class="ecell" title="'+esc(r.error||'')+'">'+esc(r.error||'?')+'</span>';
+    return '<tr><td class="ts">'+fmtTs(r.ts)+'</td><td>'+src+'<span class="arrow">→</span>'+tgt+'</td><td>'+st+'</td><td>'+sou+'</td><td>'+last+'</td></tr>';
+  }).join('');
+  return '<div class="log-wrap"><table><thead><tr><th>Zeit</th><th>Konvertierung</th><th>Status</th><th>Quelle</th><th>Grösse / Fehler</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+// ── Main Render ───────────────────────────────────────────────────────────────
+function render(){
+  if(!G){document.getElementById('root').innerHTML='<div class="loading">Lade...</div>';return;}
+
+  let html='';
+
+  // Cards: depend on selected month
+  if(selMonth===null){
+    const sub=G.by_month.length+' Monat'+(G.by_month.length!==1?'e':'')+' aufgezeichnet';
+    html+=renderCards(G.total_ok,G.total_err,G.bytes_total,sub);
+  } else {
+    const md=MC[selMonth];
+    if(md){
+      html+=renderCards(md.total_ok,md.total_err,md.bytes_total,fmtMonth(selMonth));
+    } else {
+      html+=renderCards(0,0,0,fmtMonth(selMonth)+'  – wird geladen');
+    }
+  }
+
+  // Month tabs
+  html+='<div class="section-title">Monat auswählen</div>';
+  html+=renderTabs(G.by_month);
+
+  // Chart + breakdown
+  html+='<div class="section-title">Format-Analyse</div>';
+  if(selMonth===null){
+    html+=renderChartSection(G.top_pairs,'Alle Formate – Gesamt','Top '+G.top_pairs.length+' Paare aller Zeit');
+    html+='<div class="breakdown-grid">'+bkList('Top Quellformate',G.top_src)+bkList('Top Zielformate',G.top_tgt)+'</div>';
+  } else {
+    const md=MC[selMonth];
+    if(!md){
+      html+='<div class="chart-outer chart-loading">Lade Monatsdaten...</div>';
+    } else {
+      html+=renderChartSection(md.pairs,'Formate in '+fmtMonth(selMonth),'Top '+md.pairs.length+' Paare');
+      html+='<div class="breakdown-grid">'+bkList('Top Quellformate',md.top_src)+bkList('Top Zielformate',md.top_tgt)+'</div>';
+    }
+  }
+
+  // Recent log
+  html+='<div class="section-title">Letzte 50 Konvertierungen</div>';
+  html+=renderLog(G.recent);
+
+  document.getElementById('root').innerHTML=html;
+}
+
+// ── Data fetching ─────────────────────────────────────────────────────────────
+async function loadStats(){
+  document.getElementById('hdr-status').innerHTML='<span class="sdot" style="background:var(--amber)"></span>Lade...';
+  try{
+    const r=await fetch('/api/stats');
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    G=await r.json();
+    // Pre-fetch current month if data exists
+    if(selMonth&&!MC[selMonth]) await loadMonthData(selMonth);
+    render();
+    const total=G.total_ok+G.total_err;
+    document.getElementById('hdr-status').innerHTML='<span class="sdot"></span>'+fmtN(total)+' Konvertierungen';
+  } catch(e){
+    document.getElementById('root').innerHTML='<div class="gerr">Fehler: '+esc(e.message)+'</div>';
+    document.getElementById('hdr-status').innerHTML='<span class="sdot" style="background:var(--red)"></span>Fehler';
+  }
+}
+
+async function loadMonthData(m){
+  try{
+    const r=await fetch('/api/stats/month?m='+encodeURIComponent(m));
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    MC[m]=await r.json();
+  } catch(e){ console.warn('Month load failed:',e); }
+}
+
+// ── Event handlers ────────────────────────────────────────────────────────────
+async function pickMonth(m){
+  selMonth=m;
+  if(m!==null&&!MC[m]){
+    render(); // show loading state
+    await loadMonthData(m);
+  }
+  render();
+}
+
+function setChart(type){
+  chartType=type;
+  render();
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadStats();
+</script>
+</body>
+</html>
+

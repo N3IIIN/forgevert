@@ -1,0 +1,113 @@
+# ── Web Server ─────────────────────────────────────────────────────────────────
+fastapi>=0.115
+uvicorn[standard]>=0.32
+python-multipart>=0.0.12
+
+# ── Bilder ─────────────────────────────────────────────────────────────────────
+Pillow>=11.0
+pillow-heif>=0.16          # HEIC / AVIF (iPhone-Fotos, Apple)
+
+# ── RAW-Kamera ─────────────────────────────────────────────────────────────────
+rawpy>=0.21                # CR3 CR2 NEF ARW RAF ORF RW2 DNG PEF 3FR FFF MRW
+
+# ── PDF ────────────────────────────────────────────────────────────────────────
+pypdf>=5.0
+reportlab>=4.2
+PyMuPDF>=1.24              # PDF → PNG (qualitativ besser als pypdf)
+pdf2docx>=0.5              # PDF → DOCX (Layout-erhaltend)
+
+# ── Office / Dokumente ─────────────────────────────────────────────────────────
+python-docx>=1.1
+python-pptx>=0.6           # PPTX lesen/schreiben
+odfpy>=1.4                 # ODT / ODP / ODS
+markdown>=3.6
+
+# ── E-Books / Notebooks ────────────────────────────────────────────────────────
+ebooklib>=0.18             # EPUB
+nbformat>=5.9              # Jupyter IPYNB lesen
+nbconvert>=7.0             # IPYNB → HTML / Python / Markdown
+
+# ── Tabellen / Daten ───────────────────────────────────────────────────────────
+pandas>=2.2
+openpyxl>=3.1
+lxml>=5.2
+pyarrow>=16.0              # Parquet / Feather / ORC
+xlwt>=1.3                  # Legacy XLS schreiben (pandas 2.x unterstützt es nicht mehr)
+
+# ── 3D / Mesh ──────────────────────────────────────────────────────────────────
+trimesh>=4.5
+numpy>=1.26
+ezdxf>=1.3
+
+# ── Rhino / BIM ────────────────────────────────────────────────────────────────
+rhino3dm>=8.0              # Rhino 3DM (offiziell von McNeel)
+ifcopenshell>=0.7          # IFC / BIM (Revit / ArchiCAD)
+
+# ── Stickerei (80+ Formate!) ───────────────────────────────────────────────────
+pyembroidery>=1.4          # PES DST JEF VP3 XXX HUS EXP SEW VIP CSD ESD
+
+# ── Musik / Audio-Daten ────────────────────────────────────────────────────────
+mido>=1.3                  # MIDI → JSON / Noten
+
+# ── Schriften ──────────────────────────────────────────────────────────────────
+fonttools>=4.50            # TTF ↔ OTF ↔ WOFF ↔ WOFF2
+
+# ── GIS / Geodaten ─────────────────────────────────────────────────────────────
+pyshp>=2.3                 # Shapefile SHP
+fiona>=1.9                 # Shapefile schreiben (zuverlässiger als pyshp auf Windows)
+gpxpy>=1.6                 # GPS-Tracks GPX
+fastkml>=1.0               # KML / KMZ
+geojson>=3.1               # GeoJSON Utilities
+
+# ── Medizin ────────────────────────────────────────────────────────────────────
+pydicom>=2.4               # DICOM → PNG / TIFF
+
+# ── LiDAR / Punktwolke ─────────────────────────────────────────────────────────
+laspy>=2.5                 # LAS / LAZ Punktwolken
+
+# ── PCB / Elektronik ───────────────────────────────────────────────────────────
+gerber>=0.14               # Gerber-Dateien → SVG / PNG
+
+# ── Archive ────────────────────────────────────────────────────────────────────
+py7zr>=0.21                # 7-Zip
+rarfile>=4.2               # RAR (benötigt unrar im System)
+
+# ── Vektorgrafik ───────────────────────────────────────────────────────────────
+cairosvg>=2.7              # SVG → PNG (Fallback ohne Inkscape)
+matplotlib>=3.8            # DXF → PNG/PDF Rendering (ezdxf MatplotlibBackend)
+
+# ── Outlook / E-Mail ───────────────────────────────────────────────────────────
+extract-msg>=0.48          # MSG-Dateien (Outlook)
+
+# ── Visio ──────────────────────────────────────────────────────────────────────
+vsdx>=0.5                  # Visio VSDX → PNG / JSON
+
+# ── Photoshop ──────────────────────────────────────────────────────────────────
+psd-tools>=1.10            # PSD / PSB → PNG
+
+# ── USD / Apple AR ─────────────────────────────────────────────────────────────
+# usd-core>=24.0           # USD USDA USDC USDZ — groß (~500MB), optional
+
+# ── besseres HTML→PDF ──────────────────────────────────────────────────────────
+# weasyprint>=62.0         # aktivieren wenn kein LibreOffice verfügbar
+
+# ── STEP/BREP/IGES (OpenCASCADE Python-Bindings, ~500MB) ───────────────────────
+OCP>=7.7.0.0  # STEP ↔ BREP ↔ IGES ↔ STL via OpenCASCADE
+
+# ── Config / Daten ─────────────────────────────────────────────────────────────
+PyYAML>=6.0                # YAML ↔ JSON
+tomli-w>=1.0               # JSON → TOML (tomllib lesen ist Python 3.11 stdlib)
+
+# ── QR-Code ────────────────────────────────────────────────────────────────────
+qrcode[pil]>=7.4           # Text / URL → QR-PNG
+
+# ── Kalender / Kontakte ────────────────────────────────────────────────────────
+icalendar>=5.0             # ICS → JSON/CSV
+
+# ── OCR ────────────────────────────────────────────────────────────────────────
+pytesseract>=0.3           # Bild → Text (benötigt tesseract-ocr im System)
+
+# ── Rate-Limiting ──────────────────────────────────────────────────────────────
+slowapi>=0.1               # IP-basiertes Rate-Limiting für FastAPI
+
+# ffmpeg, LibreOffice, Blender, Pandoc, Inkscape, tesseract-ocr → via Dockerfile (apt-get)

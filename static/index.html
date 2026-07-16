@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Morph — Jede Datei. Jedes Format.</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Design tokens ──────────────────────────────────────────────────────── */
+:root {
+  --bg:        #050610;
+  --bg2:       #09091C;
+  --bg3:       #0E0F26;
+  --border:    rgba(255,255,255,0.058);
+  --border-hi: rgba(255,255,255,0.14);
+  --text:      #DEE1F2;
+  --muted:     #464868;
+  --muted-hi:  #7476A2;
+  --accent:    #7C3AED;
+  --accent-hi: #A78BFA;
+  --glow:      rgba(124,58,237,0.45);
+  --green:     #10B981;
+  --green-glow:rgba(16,185,129,0.4);
+
+  --c-img:   #EC4899;
+  --c-raw:   #F59E0B;
+  --c-audio: #10B981;
+  --c-video: #F97316;
+  --c-data:  #3B82F6;
+  --c-doc:   #6366F1;
+  --c-3d:    #06B6D4;
+  --c-embd:  #EF4444;
+  --c-gis:   #22C55E;
+  --c-font:  #A855F7;
+  --c-med:   #14B8A6;
+  --c-pcb:   #84CC16;
+  --c-arch:  #8B5CF6;
+  --c-pim:   #F59E0B;
+  --c-sub:   #06B6D4;
+  --c-mol:   #10B981;
+  --c-other: #6B7280;
+
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root[data-theme="light"] {
+  --bg:        #EFEEFE;
+  --bg2:       #FFFFFF;
+  --bg3:       #F4F2FF;
+  --border:    rgba(0,0,0,0.07);
+  --border-hi: rgba(0,0,0,0.14);
+  --text:      #0A0818;
+  --muted:     #615E88;
+  --muted-hi:  #8E8BB0;
+  --glow:      rgba(124,58,237,0.22);
+  --green-glow:rgba(16,185,129,0.2);
+}
+
+html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── Dot-grid background ─────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(190,190,255,0.058) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="light"] body::before {
+  background-image: radial-gradient(circle, rgba(100,80,200,0.09) 1px, transparent 1px);
+}
+
+/* Ambient corner orbs */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -140px; right: -140px;
+  width: 560px; height: 560px;
+  background: radial-gradient(circle, rgba(6,182,212,0.09) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="light"] body::after {
+  background: radial-gradient(circle, rgba(6,182,212,0.05) 0%, transparent 65%);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(5,6,16,0.72);
+}
+[data-theme="light"] header { background: rgba(239,238,254,0.78); }
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 800;
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-decoration: none;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.04em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", system-ui, sans-serif;
+  box-shadow: 0 0 16px var(--glow);
+}
+
+.header-actions { display: flex; align-items: center; gap: 0.5rem; }
+.icon-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-hi);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.82rem;
+  transition: color 0.18s var(--ease), border-color 0.18s var(--ease), background 0.18s var(--ease);
+}
+.icon-btn:hover { color: var(--text); border-color: var(--accent-hi); background: rgba(124,58,237,0.08); }
+
+/* ── Layout wrapper ──────────────────────────────────────────────────────── */
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ── States ──────────────────────────────────────────────────────────────── */
+.state { display: none; }
+.state.active { display: block; }
+
+/* ── EMPTY STATE ─────────────────────────────────────────────────────────── */
+#state-empty { padding: 4.5rem 0 6rem; }
+
+.hero-text {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+.hero-text::before {
+  content: '';
+  position: absolute;
+  top: 45%; left: 50%;
+  transform: translate(-50%, -60%);
+  width: 760px; height: 420px;
+  background: radial-gradient(ellipse, rgba(124,58,237,0.32) 0%, rgba(96,165,250,0.13) 40%, transparent 68%);
+  pointer-events: none;
+  z-index: -1;
+}
+[data-theme="light"] .hero-text::before {
+  background: radial-gradient(ellipse, rgba(124,58,237,0.13) 0%, transparent 62%);
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-hi);
+  background: rgba(124,58,237,0.1);
+  border: 1px solid rgba(124,58,237,0.32);
+  border-radius: 999px;
+  padding: 0.36em 1.2em;
+  margin-bottom: 1.8rem;
+  box-shadow: 0 0 24px rgba(124,58,237,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+  animation: eyebrow-pulse 4s ease-in-out infinite;
+}
+@keyframes eyebrow-pulse {
+  0%, 100% { box-shadow: 0 0 24px rgba(124,58,237,0.2), inset 0 1px 0 rgba(255,255,255,0.06); }
+  50% { box-shadow: 0 0 36px rgba(124,58,237,0.38), inset 0 1px 0 rgba(255,255,255,0.08); }
+}
+h1 {
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+  margin-bottom: 1.2rem;
+}
+h1 .grad-soft {
+  background: linear-gradient(135deg, #E2E8F8 0%, #C4CAFE 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+[data-theme="light"] h1 .grad-soft {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+h1 .grad {
+  background: linear-gradient(135deg, var(--accent-hi) 0%, #60A5FA 52%, var(--c-img) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 32px rgba(124,58,237,0.65)) drop-shadow(0 0 12px rgba(236,72,153,0.3));
+}
+.hero-sub {
+  color: var(--muted-hi);
+  font-size: 0.92rem;
+  line-height: 1.75;
+  max-width: 520px;
+  margin: 0 auto 1.5rem;
+}
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+.hs-badge {
+  font-size: 0.71rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  padding: 0.3em 0.9em;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.hs-purple { color: var(--accent-hi); background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.3); }
+.hs-blue   { color: #60A5FA; background: rgba(96,165,250,0.1);  border-color: rgba(96,165,250,0.28); }
+.hs-teal   { color: #06B6D4; background: rgba(6,182,212,0.1);   border-color: rgba(6,182,212,0.28); }
+.hs-green  { color: #10B981; background: rgba(16,185,129,0.1);  border-color: rgba(16,185,129,0.28); }
+[data-theme="light"] .hs-purple { background: rgba(124,58,237,0.08); }
+[data-theme="light"] .hs-blue   { background: rgba(96,165,250,0.08); }
+[data-theme="light"] .hs-teal   { background: rgba(6,182,212,0.08); }
+[data-theme="light"] .hs-green  { background: rgba(16,185,129,0.08); }
+
+/* ── Drop Zone ───────────────────────────────────────────────────────────── */
+.drop-zone {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: var(--bg2);
+  border: 1px solid var(--border-hi);
+  cursor: pointer;
+  transition: transform 0.22s var(--ease), background 0.22s, border-color 0.22s, box-shadow 0.3s;
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.drop-zone:hover {
+  transform: translateY(-3px);
+  background: var(--bg3);
+  border-color: rgba(124,58,237,0.5);
+  box-shadow: 0 8px 48px rgba(124,58,237,0.18), 0 2px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.drop-zone.drag-over {
+  transform: translateY(-4px) scale(1.005);
+  background: var(--bg3);
+  border-color: var(--accent-hi);
+  box-shadow: 0 12px 60px rgba(124,58,237,0.28), 0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* Corner brackets */
+.dz-corner {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease), border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  opacity: 0.6;
+}
+.dz-tl { top: 14px; left: 14px; border-top: 2.5px solid var(--accent); border-left: 2.5px solid var(--accent); border-radius: 5px 0 0 0; }
+.dz-tr { top: 14px; right: 14px; border-top: 2.5px solid var(--accent); border-right: 2.5px solid var(--accent); border-radius: 0 5px 0 0; }
+.dz-bl { bottom: 14px; left: 14px; border-bottom: 2.5px solid var(--accent); border-left: 2.5px solid var(--accent); border-radius: 0 0 0 5px; }
+.dz-br { bottom: 14px; right: 14px; border-bottom: 2.5px solid var(--accent); border-right: 2.5px solid var(--accent); border-radius: 0 0 5px 0; }
+.drop-zone:hover .dz-corner,
+.drop-zone.drag-over .dz-corner { opacity: 1; border-color: var(--accent-hi); }
+.drop-zone.drag-over .dz-tl,
+.drop-zone.drag-over .dz-tr,
+.drop-zone.drag-over .dz-bl,
+.drop-zone.drag-over .dz-br { border-color: #fff; }
+
+/* SVG kept in DOM for CSS selector compat — invisible */
+.dz-border-svg { display: none; }
+.dz-border-march { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 10 7; }
+
+/* Floating format names */
+.fmt-cloud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.fmt-ghost {
+  position: absolute;
+  font-family: monospace;
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.07;
+  color: var(--accent-hi);
+  animation: ghost-float linear infinite;
+  white-space: nowrap;
+}
+[data-theme="light"] .fmt-ghost { opacity: 0.1; color: var(--accent); }
+.drop-zone:hover .fmt-ghost { opacity: 0.16; }
+@keyframes ghost-float {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  33% { transform: translateY(-10px) translateX(5px); }
+  66% { transform: translateY(8px) translateX(-4px); }
+}
+
+/* Drop zone inner */
+.dz-inner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 3.5rem 2rem;
+  pointer-events: none;
+}
+.dz-upload-icon {
+  width: 64px; height: 64px;
+  border-radius: 16px;
+  background: rgba(124,58,237,0.13);
+  border: 1.5px solid rgba(124,58,237,0.32);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.6rem;
+  font-size: 1.6rem;
+  transition: transform 0.3s var(--ease), background 0.3s, box-shadow 0.3s;
+  box-shadow: 0 0 28px rgba(124,58,237,0.2), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.drop-zone:hover .dz-upload-icon,
+.drop-zone.drag-over .dz-upload-icon {
+  transform: scale(1.12) translateY(-4px);
+  background: rgba(124,58,237,0.24);
+  box-shadow: 0 0 48px rgba(124,58,237,0.45), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.dz-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+.dz-sub {
+  color: var(--muted-hi);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.dz-max { margin-top: 0.8rem; font-size: 0.68rem; color: var(--muted); }
+
+kbd {
+  font-family: monospace;
+  font-size: 0.75em;
+  background: var(--bg3);
+  border: 1px solid var(--border-hi);
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  color: var(--muted-hi);
+}
+
+.drop-zone input[type=file] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+}
+
+/* ── Format overview grid ─────────────────────────────────────────────────── */
+.fmt-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));
+  gap: 0.55rem;
+  margin-top: 2.8rem;
+}
+.fmt-ov-cell {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem 0.9rem 1.3rem;
+  overflow: hidden;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.18s;
+}
+.fmt-ov-cell:hover {
+  background: var(--bg3);
+  border-color: var(--border-hi);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  transform: translateY(-1px);
+}
+
+/* The JS sets style="background:COLOR" on .fov-dot — left stripe */
+.fov-dot {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 0;
+  /* background comes from inline JS style */
+}
+.fov-label {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+  /* color from inline JS span style */
+}
+.fov-fmts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.fov-fmt {
+  font-family: monospace;
+  font-size: 0.63rem;
+  font-weight: 600;
+  color: var(--muted-hi);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.12em 0.42em;
+  letter-spacing: 0.03em;
+}
+[data-theme="light"] .fov-fmt {
+  background: rgba(0,0,0,0.04);
+  color: var(--muted);
+}
+
+/* ── FILE STATE ──────────────────────────────────────────────────────────── */
+#state-file { padding: 2.5rem 0 4rem; }
+
+.file-pill {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.3rem;
+  margin-bottom: 1.8rem;
+}
+.file-pill-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.file-pill-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.file-pill-meta {
+  font-size: 0.75rem;
+  color: var(--muted-hi);
+  margin-top: 0.15rem;
+}
+.fmt-badge {
+  margin-left: auto;
+  font-family: monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.28em 0.65em;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.btn-close {
+  flex-shrink: 0;
+  margin-left: 0.3rem;
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--muted-hi);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-close:hover { border-color: #EF4444; color: #EF4444; }
+
+/* Target heading */
+.targets-heading {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1.2rem;
+}
+
+/* Category sections */
+.cat-section { margin-bottom: 1.3rem; }
+.cat-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.55rem;
+}
+.cat-bar {
+  display: inline-block;
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+/* Format chip */
+.chip {
+  font-family: monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.44em 0.9em;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s var(--ease), box-shadow 0.15s var(--ease), opacity 0.12s;
+  background: var(--bg2);
+}
+.chip:hover {
+  transform: translateY(-2px);
+  opacity: 1 !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+.chip:active { transform: translateY(0); }
+
+/* ── PROGRESS STATE ──────────────────────────────────────────────────────── */
+#state-progress {
+  padding: 5rem 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#state-progress.active { display: flex; }
+
+.progress-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2.5rem;
+  text-align: center;
+  width: 100%;
+  max-width: 460px;
+}
+
+/* Spinner */
+.progress-spinner {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  border: 3px solid rgba(124,58,237,0.15);
+  border-top-color: var(--accent);
+  animation: spin 0.85s linear infinite;
+  margin: 0 auto 1.8rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Original icon element kept for DOM compat — hidden */
+.progress-converting-icon { display: none; }
+
+.progress-label {
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
+}
+.progress-sub {
+  font-size: 0.8rem;
+  color: var(--muted-hi);
+  margin-bottom: 2rem;
+}
+.progress-track {
+  height: 3px;
+  background: var(--bg3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hi));
+  width: 0%;
+  animation: progress-grow 4s cubic-bezier(0.1, 0.5, 0.2, 1) forwards;
+  box-shadow: 0 0 10px var(--glow);
+}
+.progress-fill.done {
+  animation: none;
+  width: 100%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green-glow);
+}
+@keyframes progress-grow {
+  0%   { width: 0%; }
+  50%  { width: 65%; }
+  85%  { width: 83%; }
+  100% { width: 89%; }
+}
+
+/* ── RESULT STATE ────────────────────────────────────────────────────────── */
+#state-result { padding: 2.5rem 0 5rem; }
+
+.result-card {
+  background: var(--bg2);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  animation: result-reveal 0.3s var(--ease) forwards;
+  box-shadow: 0 0 40px rgba(16,185,129,0.06);
+}
+@keyframes result-reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-top {
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(16,185,129,0.03);
+}
+.result-icon { font-size: 1.3rem; flex-shrink: 0; }
+.result-name { font-weight: 700; font-size: 0.95rem; letter-spacing: -0.01em; }
+.result-info { font-size: 0.74rem; color: var(--muted-hi); margin-top: 0.1rem; }
+.result-badge {
+  margin-left: auto;
+  font-family: monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(16,185,129,0.12);
+  color: var(--green);
+  border: 1px solid rgba(16,185,129,0.28);
+  border-radius: 999px;
+  padding: 0.26em 0.7em;
+}
+
+.result-preview {
+  background: var(--bg3);
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.result-preview img {
+  max-width: 100%;
+  max-height: 380px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  display: block;
+}
+.result-preview .svg-wrap {
+  max-width: 100%;
+  max-height: 380px;
+  overflow: auto;
+  background: white;
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+}
+.result-no-preview { text-align: center; color: var(--muted); }
+.result-no-preview .np-icon { font-size: 2.8rem; margin-bottom: 0.5rem; opacity: 0.4; }
+.result-no-preview .np-label { font-size: 0.8rem; color: var(--muted-hi); }
+
+.result-bottom {
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+/* Steps chain */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  flex-wrap: wrap;
+  color: var(--muted);
+  flex: 1;
+  min-width: 0;
+}
+.step-fmt { color: var(--muted-hi); }
+.step-fmt.last { color: var(--accent-hi); }
+.step-arrow { color: var(--border); font-size: 0.8rem; }
+
+.btn-dl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, var(--accent) 0%, #5B21B6 100%);
+  color: #fff;
+  text-decoration: none;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.12s, box-shadow 0.15s;
+  box-shadow: 0 4px 20px var(--glow);
+  flex-shrink: 0;
+}
+.btn-dl:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px var(--glow);
+}
+.btn-dl:active { transform: translateY(0); }
+
+.btn-again {
+  background: transparent;
+  color: var(--muted-hi);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-again:hover { color: var(--text); border-color: var(--accent-hi); }
+
+/* ── EMBROIDERY PANEL ─────────────────────────────────────────────────────── */
+.embd-panel {
+  margin-bottom: 1.8rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.embd-panel.hidden { display: none; }
+
+.embd-header {
+  padding: 0.65rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(239,68,68,0.05);
+}
+.embd-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-embd);
+}
+
+.embd-body {
+  display: grid;
+  grid-template-columns: minmax(160px, 200px) 1fr;
+}
+@media (max-width: 560px) { .embd-body { grid-template-columns: 1fr; } }
+
+.embd-preview {
+  border-right: 1px solid var(--border);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #06060F;
+  min-height: 160px;
+}
+@media (max-width: 560px) { .embd-preview { border-right: none; border-bottom: 1px solid var(--border); } }
+.embd-preview svg { max-width: 100%; height: auto; border-radius: 6px; }
+.embd-preview-loading { font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+.embd-info { padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: 0.9rem; }
+
+.embd-stats { display: flex; gap: 1.2rem; }
+.embd-stat { display: flex; flex-direction: column; gap: 0.1rem; }
+.embd-stat-val { font-size: 1.1rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
+.embd-stat-label { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+.embd-threads { display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 20px; }
+.thread-swatch {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.1);
+  cursor: default;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.thread-swatch:hover { transform: scale(1.4); z-index: 1; }
+
+.embd-machine-label { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+.embd-selects { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.embd-selects select {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.8rem;
+  padding: 0.42em 0.7em;
+  cursor: pointer;
+  flex: 1;
+  min-width: 110px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.embd-selects select:focus { outline: none; border-color: var(--accent-hi); }
+
+.embd-convert-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: var(--c-embd); color: #fff; border: none;
+  border-radius: 999px; padding: 0.5rem 1.1rem;
+  font-size: 0.8rem; font-weight: 700; cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s; white-space: nowrap;
+}
+.embd-convert-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.embd-convert-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── G-CODE PANEL ─────────────────────────────────────────────────────────── */
+.gcode-panel { margin-bottom:1.8rem; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+.gcode-panel.hidden { display:none; }
+.gcode-header { padding:0.65rem 1.2rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.6rem; background:rgba(132,204,22,0.05); }
+.gcode-badge { font-size:0.68rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:var(--c-pcb); }
+.gcode-body { display:grid; grid-template-columns:1fr minmax(140px,175px); }
+@media(max-width:560px){ .gcode-body{grid-template-columns:1fr;} }
+.gcode-preview { padding:0.8rem; background:#06060F; min-height:140px; display:flex; align-items:center; justify-content:center; border-right:1px solid var(--border); }
+.gcode-preview svg { max-width:100%; height:auto; max-height:220px; }
+.gcode-stats { padding:1rem 1.2rem; display:flex; flex-direction:column; gap:0.8rem; justify-content:center; }
+.gcode-stat { display:flex; flex-direction:column; }
+.gcode-stat-val { font-size:1rem; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
+.gcode-stat-label { font-size:0.62rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
+
+/* ── URL IMPORT ──────────────────────────────────────────────────────────── */
+.url-import-row { display:flex; align-items:center; gap:0.6rem; margin-top:1.2rem; max-width:600px; margin-left:auto; margin-right:auto; }
+.url-import-label { font-size:0.76rem; font-weight:700; color:var(--muted); white-space:nowrap; }
+.url-import-input {
+  flex:1; background:var(--bg2); border:1px solid var(--border);
+  border-radius:999px; padding:0.5rem 1rem; font-size:0.8rem;
+  color:var(--text); outline:none; transition:border-color .18s;
+}
+.url-import-input::placeholder { color: var(--muted); }
+.url-import-input:focus { border-color:var(--accent); }
+.url-import-btn {
+  background:transparent; color:var(--muted-hi);
+  border:1px solid var(--border); border-radius:999px;
+  padding:0.5rem 1.1rem; font-size:0.78rem; font-weight:700;
+  cursor:pointer; white-space:nowrap;
+  transition:color .15s, border-color .15s;
+}
+.url-import-btn:hover { color:var(--text); border-color:var(--accent-hi); }
+
+/* ── QUALITY PANEL ───────────────────────────────────────────────────────── */
+.quality-panel { margin-bottom:1.8rem; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+.quality-panel.hidden { display:none; }
+.qp-header { padding:0.65rem 1.2rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.6rem; background:rgba(99,102,241,0.05); }
+.qp-badge { font-size:0.68rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent-hi); }
+.qp-body { padding:1rem 1.2rem; display:flex; flex-direction:column; gap:0.8rem; }
+.qp-row { display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; }
+.qp-label { font-size:0.74rem; font-weight:600; color:var(--muted-hi); white-space:nowrap; min-width:60px; }
+.qp-slider { flex:1; min-width:120px; accent-color:var(--accent); cursor:pointer; }
+.qp-val { font-size:0.8rem; font-weight:700; font-variant-numeric:tabular-nums; color:var(--text); min-width:2rem; text-align:right; }
+.qp-num { width:88px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:0.3rem 0.5rem; font-size:0.78rem; color:var(--text); outline:none; }
+.qp-num:focus { border-color:var(--accent); }
+.qp-hint { font-size:0.68rem; color:var(--muted); }
+
+/* ── BATCH STATE ──────────────────────────────────────────────────────────── */
+#state-batch { padding:2.5rem 0 4rem; }
+.batch-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+.batch-head { padding:1rem 1.4rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.batch-title { font-size:0.88rem; font-weight:700; color:var(--text); }
+.batch-fmt-row { padding:1rem 1.4rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap; }
+.batch-fmt-row label { font-size:0.76rem; font-weight:600; color:var(--muted-hi); white-space:nowrap; }
+.batch-fmt-input { background:var(--bg3); border:1px solid var(--border); border-radius:999px; color:var(--text); font-size:0.84rem; padding:0.5em 1em; flex:1; min-width:80px; outline:none; }
+.batch-fmt-input:focus { border-color:var(--accent-hi); }
+.batch-file-list { padding:0.5rem 0; max-height:340px; overflow-y:auto; }
+.batch-item { display:flex; align-items:center; gap:0.7rem; padding:0.5rem 1.4rem; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.8rem; }
+.batch-item:last-child { border-bottom:none; }
+.batch-item-icon { font-size:1rem; flex-shrink:0; }
+.batch-item-name { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text); }
+.batch-item-fmt { font-family:monospace; font-size:0.68rem; font-weight:700; color:var(--muted); flex-shrink:0; }
+.batch-item-status { font-size:0.78rem; flex-shrink:0; min-width:60px; text-align:right; }
+.batch-result-section { padding:1.2rem 1.4rem; border-top:1px solid var(--border); display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+.batch-result-section.hidden { display:none; }
+.batch-summary { font-size:0.83rem; flex:1; }
+.batch-summary b { color:var(--accent-hi); }
+
+/* ── 3D VIEWER ────────────────────────────────────────────────────────────── */
+.viewer3d-wrap { position:relative; background:#04040E; border-radius:8px; overflow:hidden; }
+.viewer3d-hint { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); font-size:0.65rem; color:rgba(255,255,255,0.2); pointer-events:none; white-space:nowrap; }
+
+/* ── ERROR ───────────────────────────────────────────────────────────────── */
+.error-card {
+  background: rgba(239,68,68,0.07);
+  border: 1px solid rgba(239,68,68,0.26);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.7rem;
+  margin-top: 1rem;
+}
+.error-title {
+  font-weight: 700;
+  color: #EF4444;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.error-msg {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--muted-hi);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
+.error-actions {
+  margin-top: 1.2rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── Utility ─────────────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-mark">M</div>
+    Morph
+  </a>
+  <div class="header-actions">
+    <button class="icon-btn" id="theme-btn" title="Theme wechseln" onclick="toggleTheme()">
+      <span id="theme-icon">☀</span>
+    </button>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="wrap">
+
+  <!-- ── STATE: EMPTY ── -->
+  <div id="state-empty" class="state active">
+
+    <div class="hero-text">
+      <span class="eyebrow">⚡ Universal Converter</span>
+      <h1><span class="grad-soft">Jede Datei.</span><br><span class="grad">Jedes Format.</span></h1>
+      <p class="hero-sub">Bilder · Audio · Video · 3D &amp; BIM · Stickerei · GIS · Untertitel · Kontakte · Kalender · Chemie · DICOM · LiDAR · G-Code</p>
+      <div class="hero-stats">
+        <span class="hs-badge hs-purple">990+ Konvertierungen</span>
+        <span class="hs-badge hs-blue">150+ Formate</span>
+        <span class="hs-badge hs-teal">16 Kategorien</span>
+      </div>
+    </div>
+
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="file-input" multiple onchange="onFileSelect(event)">
+
+      <!-- Corner brackets -->
+      <span class="dz-corner dz-tl" aria-hidden="true"></span>
+      <span class="dz-corner dz-tr" aria-hidden="true"></span>
+      <span class="dz-corner dz-bl" aria-hidden="true"></span>
+      <span class="dz-corner dz-br" aria-hidden="true"></span>
+
+      <!-- SVG kept in DOM for CSS compat — invisible -->
+      <svg class="dz-border-svg" aria-hidden="true">
+        <rect class="dz-border-march" x="1" y="1" rx="17" ry="17"
+          width="calc(100% - 2px)" height="calc(100% - 2px)" />
+      </svg>
+
+      <!-- Floating format ghosts — JS writes spans here -->
+      <div class="fmt-cloud" id="fmt-cloud" aria-hidden="true"></div>
+
+      <!-- Main content -->
+      <div class="dz-inner">
+        <div class="dz-upload-icon">📂</div>
+        <div class="dz-title">Datei hier ablegen</div>
+        <div class="dz-sub">oder klicken zum Auswählen · <kbd>Ctrl+V</kbd> für Clipboard</div>
+        <div class="dz-max">Bis zu 500 MB · Alle Formate · Mehrere Dateien = Batch</div>
+      </div>
+    </div>
+
+    <!-- URL Import -->
+    <div class="url-import-row">
+      <span class="url-import-label">🔗 URL</span>
+      <input id="url-input" class="url-import-input" type="url" placeholder="https://example.com/bild.jpg">
+      <button class="url-import-btn" onclick="handleUrlImport()">Laden</button>
+    </div>
+
+    <!-- Format overview grid -->
+    <div class="fmt-overview" id="fmt-overview"></div>
+
+  </div><!-- /state-empty -->
+
+  <!-- ── STATE: FILE SELECTED ── -->
+  <div id="state-file" class="state">
+
+    <div class="file-pill" id="file-pill">
+      <div class="file-pill-icon" id="pill-icon">📄</div>
+      <div style="min-width:0;flex:1">
+        <div class="file-pill-name" id="pill-name">–</div>
+        <div class="file-pill-meta" id="pill-meta">–</div>
+      </div>
+      <span class="fmt-badge" id="pill-badge">–</span>
+      <button class="btn-close" title="Neue Datei" onclick="reset()">✕</button>
+    </div>
+
+    <!-- ── Stickerei-Modus ── -->
+    <div id="embd-panel" class="embd-panel hidden">
+      <div class="embd-header">
+        <span class="embd-badge">🧵 Stickerei-Modus</span>
+        <span id="embd-fmt-hint" style="font-size:0.7rem;color:var(--muted);margin-left:auto"></span>
+      </div>
+      <div class="embd-body">
+        <div class="embd-preview" id="embd-preview">
+          <div class="embd-preview-loading">Lade Vorschau…</div>
+        </div>
+        <div class="embd-info">
+          <div class="embd-stats">
+            <div class="embd-stat"><span class="embd-stat-val" id="embd-stitches">–</span><span class="embd-stat-label">Stiche</span></div>
+            <div class="embd-stat"><span class="embd-stat-val" id="embd-colors">–</span><span class="embd-stat-label">Farben</span></div>
+            <div class="embd-stat"><span class="embd-stat-val" id="embd-size">–</span><span class="embd-stat-label">Größe</span></div>
+          </div>
+          <div class="embd-threads" id="embd-threads"></div>
+          <div>
+            <div class="embd-machine-label">Meine Stickmaschine</div>
+            <div class="embd-selects">
+              <select id="embd-brand" onchange="onBrandChange()">
+                <option value="">Marke wählen…</option>
+              </select>
+              <select id="embd-model" disabled>
+                <option value="">Modell wählen…</option>
+              </select>
+            </div>
+            <button class="embd-convert-btn" id="embd-convert-btn" onclick="convertForMachine()" disabled>
+              🧵 Für diese Maschine konvertieren
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── G-Code-Modus ── -->
+    <div id="gcode-panel" class="gcode-panel hidden">
+      <div class="gcode-header">
+        <span class="gcode-badge">⚙️ G-Code-Modus</span>
+        <span id="gcode-fmt-hint" style="font-size:0.7rem;color:var(--muted);margin-left:auto"></span>
+      </div>
+      <div class="gcode-body">
+        <div class="gcode-preview" id="gcode-preview">
+          <div style="color:var(--muted);font-size:0.76rem">Lade Toolpath…</div>
+        </div>
+        <div class="gcode-stats">
+          <div class="gcode-stat"><span class="gcode-stat-val" id="gcode-moves">–</span><span class="gcode-stat-label">Moves gesamt</span></div>
+          <div class="gcode-stat"><span class="gcode-stat-val" id="gcode-cuts">–</span><span class="gcode-stat-label">Schnitte (G1)</span></div>
+          <div class="gcode-stat"><span class="gcode-stat-val" id="gcode-bbox">–</span><span class="gcode-stat-label">Maße (X×Y)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quality Panel -->
+    <div id="quality-panel" class="quality-panel hidden">
+      <div class="qp-header">
+        <span class="qp-badge">🎛 Qualität &amp; Größe</span>
+        <span id="qp-fmt-hint" style="font-size:0.7rem;color:var(--muted);margin-left:auto"></span>
+      </div>
+      <div class="qp-body">
+        <div class="qp-row">
+          <label class="qp-label">Qualität</label>
+          <input type="range" id="qp-quality" min="1" max="95" value="85" class="qp-slider"
+            oninput="document.getElementById('qp-quality-val').textContent=this.value">
+          <span id="qp-quality-val" class="qp-val">85</span>
+        </div>
+        <div class="qp-row">
+          <label class="qp-label">Breite px</label>
+          <input type="number" id="qp-width" class="qp-num" placeholder="Original" min="1" max="16000">
+          <label class="qp-label" style="margin-left:1rem">Höhe px</label>
+          <input type="number" id="qp-height" class="qp-num" placeholder="Original" min="1" max="16000">
+        </div>
+        <div class="qp-hint">Leer lassen = Original. Nur Breite oder nur Höhe = proportional skalieren.</div>
+      </div>
+    </div>
+
+    <div class="targets-heading">Konvertieren zu</div>
+    <div id="targets-container">
+      <div style="color:var(--muted);font-size:0.85rem">Lade Formate…</div>
+    </div>
+
+    <div id="error-container"></div>
+
+  </div><!-- /state-file -->
+
+  <!-- ── STATE: BATCH ── -->
+  <div id="state-batch" class="state">
+    <div class="batch-card">
+      <div class="batch-head">
+        <span class="batch-title">📦 Batch-Konvertierung — <span id="batch-count-lbl">0 Dateien</span></span>
+        <button class="btn-again" onclick="reset()">✕ Abbrechen</button>
+      </div>
+      <div class="batch-fmt-row">
+        <label>Zielformat:</label>
+        <input id="batch-fmt" class="batch-fmt-input" type="text" placeholder="z.B. jpg · pdf · mp3 · png">
+        <button class="btn-dl" id="batch-start-btn" onclick="startBatch()">Alle konvertieren</button>
+      </div>
+      <div id="batch-file-list" class="batch-file-list"></div>
+      <div id="batch-result-section" class="batch-result-section hidden">
+        <div class="batch-summary" id="batch-summary"></div>
+        <a id="batch-dl-btn" class="btn-dl" href="#" download="converted.zip">↓ ZIP herunterladen</a>
+        <button class="btn-again" onclick="reset()">⟳ Neue Dateien</button>
+      </div>
+    </div>
+  </div><!-- /state-batch -->
+
+  <!-- ── STATE: PROGRESS ── -->
+  <div id="state-progress" class="state">
+    <div style="width:100%">
+      <div class="progress-card">
+        <div class="progress-spinner" aria-hidden="true"></div>
+        <div class="progress-converting-icon">⚙️</div>
+        <div class="progress-label" id="progress-label">Konvertiere…</div>
+        <div class="progress-sub" id="progress-sub">Bitte warten</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STATE: RESULT ── -->
+  <div id="state-result" class="state">
+
+    <div class="result-card">
+      <div class="result-top">
+        <div class="result-icon">✅</div>
+        <div>
+          <div class="result-name" id="result-name">Konvertiert</div>
+          <div class="result-info" id="result-info"></div>
+        </div>
+        <span class="result-badge" id="result-badge">OK</span>
+      </div>
+      <div class="result-preview" id="result-preview"></div>
+      <div class="result-bottom">
+        <div class="steps" id="steps-chain"></div>
+        <a class="btn-dl" id="btn-dl" href="#" download>↓ Herunterladen</a>
+        <button class="btn-again" onclick="reset()">⟳ Neue Datei</button>
+      </div>
+    </div>
+
+  </div><!-- /state-result -->
+
+</div><!-- /wrap -->
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+// State
+// ══════════════════════════════════════════════════════════════════════════
+let currentFile = null;
+let currentFmt  = null;
+let currentBlob = null;
+let currentExt  = null;
+let machineDB   = {};
+let selectedMachineFmt = null;
+let batchFiles  = [];
+
+const EMBD_FMTS  = new Set(["pes","dst","exp","jef","xxx","vp3","hus","sew","vip","csd","esd","u01","phb","phc","inb"]);
+const GCODE_FMTS = new Set(["gcode","nc","cnc","tap","ngc","mpf"]);
+const MESH_FMTS  = new Set(["stl","obj","glb","ply","3mf","off","dae"]);
+
+// ══════════════════════════════════════════════════════════════════════════
+// Category system
+// ══════════════════════════════════════════════════════════════════════════
+const CATS = [
+  { key:"image",  label:"Bilder",          color:"var(--c-img)",   fmts:["jpeg","png","gif","webp","bmp","tiff","ico","tga","ppm","pcx","heic","heif","avif","psd","psb","eps","svg"] },
+  { key:"raw",    label:"RAW-Kamera",      color:"var(--c-raw)",   fmts:["cr3","cr2","nef","nrw","arw","srf","sr2","raf","orf","rw2","dng","pef","3fr","fff","mrw","erf","mos","mef"] },
+  { key:"audio",  label:"Audio",           color:"var(--c-audio)", fmts:["mp3","wav","ogg","flac","aac","opus","wma","aiff","ac3","mp2","midi","mid"] },
+  { key:"video",  label:"Video",           color:"var(--c-video)", fmts:["mp4","avi","mov","mkv","webm","flv","wmv","mpg","ts","3gp","mxf","rm"] },
+  { key:"data",   label:"Tabellen / Daten",color:"var(--c-data)",  fmts:["csv","tsv","json","xlsx","xls","xml","parquet","feather","orc","sqlite","db","html","txt","yaml","toml","h5","hdf5","nc"] },
+  { key:"doc",    label:"Dokumente",       color:"var(--c-doc)",   fmts:["pdf","docx","doc","odt","rtf","pptx","ppt","odp","epub","fb2","ipynb","markdown","latex","rst","vsdx","msg","eml"] },
+  { key:"3d",     label:"3D / BIM / CAD",  color:"var(--c-3d)",    fmts:["dwg","dxf","stl","obj","ply","3mf","glb","off","dae","abc","step","brep","iges","svg","ifc","ifczip","3dm","fbx","blend","usdz"] },
+  { key:"embd",   label:"Stickerei",       color:"var(--c-embd)",  fmts:["pes","dst","exp","jef","xxx","vp3","hus","sew","vip","csd","esd","u01","phb","phc","inb"] },
+  { key:"gis",    label:"GIS / Geo",       color:"var(--c-gis)",   fmts:["geojson","kml","kmz","gpx","shp"] },
+  { key:"font",   label:"Schriften",       color:"var(--c-font)",  fmts:["ttf","otf","woff","woff2"] },
+  { key:"med",    label:"Medizin / LiDAR", color:"var(--c-med)",   fmts:["dcm","nii","las","laz"] },
+  { key:"pcb",    label:"PCB / G-Code",    color:"var(--c-pcb)",   fmts:["gbr","gtl","gbl","gts","gbs","gko","ger","gcode","nc","cnc","tap","ngc","mpf"] },
+  { key:"arch",   label:"Archive",         color:"var(--c-arch)",  fmts:["zip","7z","rar","tar","tar_gz","tar_bz2"] },
+  { key:"pim",    label:"Kontakte / Kalender", color:"var(--c-pim)", fmts:["vcf","ics"] },
+  { key:"sub",    label:"Untertitel",      color:"var(--c-sub)",   fmts:["srt","vtt","ass","ssa","sub"] },
+  { key:"mol",    label:"Chemie / Moleküle",color:"var(--c-mol)",  fmts:["mol","sdf","pdb"] },
+];
+
+function getCat(fmt) {
+  for (const c of CATS) {
+    if (c.fmts.includes(fmt)) return c;
+  }
+  return { key:"other", label:"Sonstige", color:"var(--c-other)", fmts:[] };
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Format normalization
+// ══════════════════════════════════════════════════════════════════════════
+const ALIAS = {
+  jpg:"jpeg", jpe:"jpeg", jfif:"jpeg",
+  tif:"tiff", md:"markdown", htm:"html",
+  stp:"step", p21:"step", igs:"iges", gltf:"glb",
+  m4a:"aac", m4b:"aac", mid:"midi",
+  yml:"yaml", tgz:"tar_gz", tbz2:"tar_bz2", txz:"tar_xz",
+  vcard:"vcf", ical:"ics", h5:"hdf5",
+};
+function normFmt(s) { const f=s.toLowerCase().replace(/^\./,''); return ALIAS[f]||f; }
+function fileExt(n) { const p=n.split('.'); return p.length>1?p.pop():''; }
+function fmtBytes(n) {
+  if(n<1024) return n+' B';
+  if(n<1048576) return (n/1024).toFixed(1)+' KB';
+  if(n<1073741824) return (n/1048576).toFixed(1)+' MB';
+  return (n/1073741824).toFixed(1)+' GB';
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// MIME map
+// ══════════════════════════════════════════════════════════════════════════
+const MIME = {
+  jpeg:"image/jpeg", png:"image/png", gif:"image/gif", bmp:"image/bmp",
+  webp:"image/webp", tiff:"image/tiff", ico:"image/x-icon", svg:"image/svg+xml",
+  pdf:"application/pdf",
+  mp3:"audio/mpeg", wav:"audio/wav", ogg:"audio/ogg", flac:"audio/flac",
+  aac:"audio/aac", opus:"audio/opus",
+  mp4:"video/mp4", avi:"video/x-msvideo", webm:"video/webm",
+  mkv:"video/x-matroska", mov:"video/quicktime",
+  csv:"text/csv", tsv:"text/tab-separated-values",
+  json:"application/json", html:"text/html", txt:"text/plain",
+  xml:"application/xml",
+  xlsx:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  docx:"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  pptx:"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  zip:"application/zip", "7z":"application/x-7z-compressed",
+  stl:"model/stl", obj:"model/obj", glb:"model/gltf-binary",
+  step:"application/step",
+};
+function getMime(f) { return MIME[f] || "application/octet-stream"; }
+
+// ══════════════════════════════════════════════════════════════════════════
+// UI helpers
+// ══════════════════════════════════════════════════════════════════════════
+function showState(id) {
+  ['state-empty','state-file','state-batch','state-progress','state-result'].forEach(s => {
+    const el = document.getElementById(s);
+    el.classList.remove('active');
+    el.style.display = '';
+  });
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  if (id === 'state-progress') el.style.display = 'flex';
+}
+
+function setText(id, v) { document.getElementById(id).textContent = v; }
+function setHTML(id, v) { document.getElementById(id).innerHTML = v; }
+
+// ══════════════════════════════════════════════════════════════════════════
+// Floating format cloud in drop zone
+// ══════════════════════════════════════════════════════════════════════════
+(function buildCloud() {
+  const all = [
+    'PNG','JPG','SVG','PDF','DOCX','MP4','MP3','STL','CSV','JSON',
+    'XLSX','GLB','FLAC','OGG','PES','DST','MIDI','TTF','WOFF2','GeoJSON',
+    'GPX','KML','SHP','DCM','LAS','GCODE','EPUB','IPYNB','3DM','IFC',
+    'NEF','CR3','ARW','DNG','HEIC','AVIF','OTF','VP3','JEF','RAW',
+    'STEP','BREP','DXF','FBX','BLEND','OBJ','PLY','7Z','ZIP','PPTX',
+  ];
+  const cloud = document.getElementById('fmt-cloud');
+  all.forEach((fmt, i) => {
+    const el = document.createElement('span');
+    el.className = 'fmt-ghost';
+    el.textContent = fmt;
+    el.style.left = (5 + Math.random() * 85) + '%';
+    el.style.top  = (5 + Math.random() * 85) + '%';
+    el.style.animationDuration = (12 + Math.random() * 18) + 's';
+    el.style.animationDelay   = -(Math.random() * 15) + 's';
+    cloud.appendChild(el);
+  });
+})();
+
+// ══════════════════════════════════════════════════════════════════════════
+// Format overview grid
+// ══════════════════════════════════════════════════════════════════════════
+(function buildOverview() {
+  const grid = document.getElementById('fmt-overview');
+  // Rendert direkt aus CATS — immer synchron mit dem Rest der App
+  CATS.forEach(c => {
+    const preview = c.fmts.slice(0, 6); // max 6 Beispiel-Formate anzeigen
+    const cell = document.createElement('div');
+    cell.className = 'fmt-ov-cell';
+    cell.innerHTML = `
+      <div class="fov-label">
+        <span class="fov-dot" style="background:${c.color}"></span>
+        <span style="color:${c.color}">${c.label}</span>
+      </div>
+      <div class="fov-fmts">${preview.map(f => `<span class="fov-fmt">${f}</span>`).join('')}${c.fmts.length > 6 ? `<span class="fov-fmt" style="opacity:0.5">+${c.fmts.length - 6}</span>` : ''}</div>
+    `;
+    grid.appendChild(cell);
+  });
+})();
+
+// ══════════════════════════════════════════════════════════════════════════
+// Drop zone
+// ══════════════════════════════════════════════════════════════════════════
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  const files = Array.from(e.dataTransfer.files);
+  if (files.length > 1) handleBatchFiles(files);
+  else if (files.length === 1) handleFile(files[0]);
+});
+function onFileSelect(e) {
+  const files = Array.from(e.target.files);
+  if (files.length > 1) handleBatchFiles(files);
+  else if (files.length === 1) handleFile(files[0]);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// File handling
+// ══════════════════════════════════════════════════════════════════════════
+async function handleFile(file) {
+  currentFile = file;
+  const ext  = fileExt(file.name);
+  currentFmt = normFmt(ext);
+  const cat  = getCat(currentFmt);
+
+  // Fill pill
+  document.getElementById('pill-icon').textContent = catIcon(cat.key);
+  document.getElementById('pill-icon').style.background = hexAlpha(cat.color, 0.15);
+  setText('pill-name', file.name);
+  setText('pill-meta', fmtBytes(file.size) + (currentFmt ? ' · ' + currentFmt.toUpperCase() : ''));
+  const badge = document.getElementById('pill-badge');
+  badge.textContent = (ext || '?').toUpperCase();
+  badge.style.color = cat.color;
+  badge.style.background = hexAlpha(cat.color, 0.12);
+  badge.style.border = `1px solid ${hexAlpha(cat.color, 0.3)}`;
+
+  setHTML('targets-container', '<div style="color:var(--muted);font-size:0.85rem;padding:0.5rem 0">Lade Formate…</div>');
+  setHTML('error-container', '');
+  showState('state-file');
+
+  const isEmbd   = EMBD_FMTS.has(currentFmt);
+  const isGCode  = GCODE_FMTS.has(currentFmt);
+  document.getElementById('embd-panel').classList.toggle('hidden', !isEmbd);
+  document.getElementById('gcode-panel').classList.toggle('hidden', !isGCode);
+  document.getElementById('quality-panel').classList.add('hidden'); // wird von loadTargets aktiviert
+
+  if (isEmbd) {
+    setText('embd-fmt-hint', currentFmt.toUpperCase());
+    resetEmbroideryPanel();
+    Promise.all([loadTargets(currentFmt), loadEmbroideryPreview(file), loadEmbroideryInfo(file)]);
+  } else if (isGCode) {
+    setText('gcode-fmt-hint', currentFmt.toUpperCase());
+    resetGCodePanel();
+    Promise.all([loadTargets(currentFmt), loadGCodePreview(file), loadGCodeStats(file)]);
+  } else {
+    await loadTargets(currentFmt);
+  }
+}
+
+function catIcon(key) {
+  const m = { image:'🖼', raw:'📷', audio:'🎵', video:'🎬', data:'📊', doc:'📄',
+               '3d':'🔷', embd:'🧵', gis:'🌍', font:'🔤', med:'🏥', pcb:'🔌',
+               arch:'🗜', pim:'📇', sub:'💬', mol:'🧪' };
+  return m[key] || '📁';
+}
+
+function hexAlpha(cssVar, alpha) {
+  // For CSS custom properties we can't compute hex easily; return a fallback rgba
+  // We'll map known colors
+  const map = {
+    'var(--c-img)':'236,72,153','var(--c-raw)':'245,158,11','var(--c-audio)':'16,185,129',
+    'var(--c-video)':'249,115,22','var(--c-data)':'59,130,246','var(--c-doc)':'99,102,241',
+    'var(--c-3d)':'6,182,212','var(--c-embd)':'239,68,68','var(--c-gis)':'34,197,94',
+    'var(--c-font)':'168,85,247','var(--c-med)':'20,184,166','var(--c-pcb)':'132,204,22',
+    'var(--c-arch)':'139,92,246','var(--c-pim)':'245,158,11',
+    'var(--c-sub)':'6,182,212','var(--c-mol)':'16,185,129','var(--c-other)':'107,114,128',
+  };
+  const rgb = map[cssVar] || '107,114,128';
+  return `rgba(${rgb},${alpha})`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Load targets
+// ══════════════════════════════════════════════════════════════════════════
+async function loadTargets(fmt) {
+  try {
+    const r = await fetch(`/api/formats?fmt=${encodeURIComponent(fmt)}`);
+    const data = await r.json();
+    renderTargets(data.targets || []);
+  } catch(e) {
+    setHTML('targets-container', `<div style="color:var(--c-embd);font-size:0.85rem">API nicht erreichbar</div>`);
+  }
+}
+
+function renderTargets(targets) {
+  if (!targets || targets.length === 0) {
+    setHTML('targets-container', '<div style="color:var(--muted);font-size:0.85rem;padding:0.5rem 0">Keine Zielformate für dieses Format verfügbar.</div>');
+    return;
+  }
+
+  // Group by category
+  const groups = {};
+  for (const t of targets) {
+    const cat = getCat(t);
+    if (!groups[cat.key]) groups[cat.key] = { cat, fmts: [] };
+    groups[cat.key].fmts.push(t);
+  }
+
+  let html = '';
+  for (const [, g] of Object.entries(groups)) {
+    const { cat, fmts } = g;
+    const chips = fmts.sort().map(f =>
+      `<button class="chip" onclick="selectTarget('${f}')"
+        style="color:${cat.color};border-color:${hexAlpha(cat.color,0.35)};background:${hexAlpha(cat.color,0.07)}"
+        >${f}</button>`
+    ).join('');
+    html += `
+      <div class="cat-section">
+        <div class="cat-label">
+          <span class="cat-bar" style="background:${cat.color}"></span>
+          ${cat.label}
+        </div>
+        <div class="chips-row">${chips}</div>
+      </div>`;
+  }
+  setHTML('targets-container', html);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Machine database
+// ══════════════════════════════════════════════════════════════════════════
+async function fetchMachineDB() {
+  try {
+    const r = await fetch('/api/machines');
+    machineDB = await r.json();
+    const sel = document.getElementById('embd-brand');
+    for (const brand of Object.keys(machineDB)) {
+      const o = document.createElement('option');
+      o.value = brand; o.textContent = brand;
+      sel.appendChild(o);
+    }
+  } catch(e) { /* API not yet available */ }
+}
+
+function onBrandChange() {
+  selectedMachineFmt = null;
+  const brand = document.getElementById('embd-brand').value;
+  const modelSel = document.getElementById('embd-model');
+  document.getElementById('embd-convert-btn').disabled = true;
+  modelSel.innerHTML = '<option value="">Modell wählen…</option>';
+  modelSel.disabled = !brand;
+  if (!brand) return;
+  const info = machineDB[brand];
+  if (!info) return;
+  modelSel.removeEventListener('change', _onModelChange);
+  modelSel.addEventListener('change', _onModelChange);
+  for (const m of (info.models || [])) {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    modelSel.appendChild(o);
+  }
+}
+
+function _onModelChange() {
+  const brand = document.getElementById('embd-brand').value;
+  const model = document.getElementById('embd-model').value;
+  const btn = document.getElementById('embd-convert-btn');
+  selectedMachineFmt = null;
+  btn.disabled = true;
+  if (!brand || !model) return;
+  const fmts = (machineDB[brand] || {}).formats || [];
+  selectedMachineFmt = fmts[0] || null;
+  if (selectedMachineFmt) {
+    btn.disabled = false;
+    btn.textContent = `🧵 Als ${selectedMachineFmt.toUpperCase()} konvertieren`;
+  }
+}
+
+function convertForMachine() {
+  if (selectedMachineFmt) startConvert(selectedMachineFmt);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Embroidery panel
+// ══════════════════════════════════════════════════════════════════════════
+function resetEmbroideryPanel() {
+  selectedMachineFmt = null;
+  setText('embd-stitches', '–');
+  setText('embd-colors', '–');
+  setText('embd-size', '–');
+  setHTML('embd-threads', '');
+  setHTML('embd-preview', '<div class="embd-preview-loading">Lade Vorschau…</div>');
+  document.getElementById('embd-brand').value = '';
+  document.getElementById('embd-model').innerHTML = '<option value="">Modell wählen…</option>';
+  document.getElementById('embd-model').disabled = true;
+  document.getElementById('embd-convert-btn').disabled = true;
+  document.getElementById('embd-convert-btn').textContent = '🧵 Für diese Maschine konvertieren';
+}
+
+async function loadEmbroideryInfo(file) {
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const r = await fetch('/api/embroidery/info', { method: 'POST', body: fd });
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.stitch_count != null) setText('embd-stitches', d.stitch_count.toLocaleString('de-DE'));
+    if (d.thread_count != null) setText('embd-colors', d.thread_count);
+    if (d.width_mm != null && d.height_mm != null)
+      setText('embd-size', `${Math.round(d.width_mm)}×${Math.round(d.height_mm)} mm`);
+    // Thread swatches
+    if (d.threads && d.threads.length) {
+      const html = d.threads.map(t => {
+        const hex = t.hex || '#888888';
+        const tip = [t.name, t.brand, t.catalog].filter(Boolean).join(' · ') || hex;
+        return `<div class="thread-swatch" style="background:${hex}" title="${tip}"></div>`;
+      }).join('');
+      setHTML('embd-threads', html);
+    }
+  } catch(e) { /* silent */ }
+}
+
+async function loadEmbroideryPreview(file) {
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const r = await fetch('/api/embroidery/preview', { method: 'POST', body: fd });
+    if (!r.ok) {
+      setHTML('embd-preview', '<div class="embd-preview-loading" style="color:var(--muted)">Keine Vorschau</div>');
+      return;
+    }
+    const d = await r.json();
+    if (d.svg) {
+      setHTML('embd-preview', d.svg);
+    }
+  } catch(e) {
+    setHTML('embd-preview', '<div class="embd-preview-loading" style="color:var(--muted)">Vorschau-Fehler</div>');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Quality Panel
+// ══════════════════════════════════════════════════════════════════════════
+const QUALITY_FMTS = new Set(['jpeg','jpg','webp','png']);
+
+function selectTarget(fmt) {
+  const qp = document.getElementById('quality-panel');
+  if (QUALITY_FMTS.has(fmt)) {
+    setText('qp-fmt-hint', fmt.toUpperCase());
+    qp.classList.remove('hidden');
+    // Scroll to panel
+    qp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Store chosen format, convert via button or directly
+    qp.dataset.fmt = fmt;
+    // Show convert button inside panel if not yet there
+    let btn = document.getElementById('qp-convert-btn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'qp-convert-btn';
+      btn.className = 'btn-dl';
+      btn.style.cssText = 'margin-top:0.3rem;width:100%';
+      btn.onclick = () => startConvert(qp.dataset.fmt);
+      document.querySelector('.qp-body').appendChild(btn);
+    }
+    btn.textContent = `→ Konvertieren zu ${fmt.toUpperCase()}`;
+  } else {
+    qp.classList.add('hidden');
+    startConvert(fmt);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Clipboard Paste (Ctrl+V)
+// ══════════════════════════════════════════════════════════════════════════
+window.addEventListener('paste', (e) => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) {
+        // Name based on type: image/png → clipboard.png
+        const ext = item.type.split('/')[1] || 'png';
+        const named = new File([file], `clipboard.${ext}`, { type: item.type });
+        handleFile(named);
+      }
+      e.preventDefault();
+      return;
+    }
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// URL Import
+// ══════════════════════════════════════════════════════════════════════════
+async function handleUrlImport() {
+  const input = document.getElementById('url-input');
+  const url = input.value.trim();
+  if (!url) { input.focus(); return; }
+
+  const btn = document.querySelector('.url-import-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳';
+
+  try {
+    // We need format — derive from URL path
+    const path = new URL(url).pathname;
+    const ext  = path.split('.').pop().toLowerCase() || 'bin';
+    const filename = path.split('/').pop() || `download.${ext}`;
+
+    // Show progress state placeholder
+    setText('progress-label', `Lade URL…`);
+    setText('progress-sub', filename);
+    showState('state-progress');
+
+    // Fetch via server
+    const fd = new FormData();
+    fd.append('url', url);
+    fd.append('target_fmt', ext); // dummy — just to probe; we'll re-use handleFile flow
+    // Actually: we download via server and get back the file, then treat as uploaded file
+    // Simpler: fetch the URL client-side (if CORS allows), else fall back to server probe
+    let file;
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const blob = await r.blob();
+      file = new File([blob], filename, { type: blob.type });
+    } catch {
+      // CORS blocked — use server-side fetch to get raw bytes, reconstruct File
+      const r2 = await fetch('/api/convert-url', {
+        method: 'POST',
+        body: (() => { const f = new FormData(); f.append('url', url); f.append('target_fmt', ext); return f; })()
+      });
+      const d = await r2.json();
+      if (d.result_b64) {
+        const bytes = Uint8Array.from(atob(d.result_b64), c => c.charCodeAt(0));
+        file = new File([bytes], d.source_filename || filename);
+      } else {
+        throw new Error(d.detail || d.error || 'Fetch fehlgeschlagen');
+      }
+    }
+
+    input.value = '';
+    showState('state-empty');
+    handleFile(file);
+  } catch(e) {
+    showState('state-empty');
+    alert(`URL konnte nicht geladen werden:\n${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Laden';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// G-Code panel
+// ══════════════════════════════════════════════════════════════════════════
+function resetGCodePanel() {
+  setHTML('gcode-preview', '<div style="color:var(--muted);font-size:0.78rem">Lade Toolpath…</div>');
+  setText('gcode-moves', '–');
+  setText('gcode-cuts', '–');
+  setText('gcode-bbox', '–');
+}
+
+async function loadGCodePreview(file) {
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('target_fmt', 'svg');
+    const r = await fetch('/api/convert', { method: 'POST', body: fd });
+    const d = await r.json();
+    if (d.result_b64) {
+      const svgText = atob(d.result_b64);
+      setHTML('gcode-preview', svgText);
+    } else {
+      setHTML('gcode-preview', '<div style="color:var(--muted);font-size:0.78rem">Keine Vorschau</div>');
+    }
+  } catch(e) { setHTML('gcode-preview', '<div style="color:var(--muted);font-size:0.78rem">Fehler</div>'); }
+}
+
+async function loadGCodeStats(file) {
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('target_fmt', 'json');
+    const r = await fetch('/api/convert', { method: 'POST', body: fd });
+    const d = await r.json();
+    if (!d.result_b64) return;
+    const j = JSON.parse(atob(d.result_b64));
+    const moves = j.moves || [];
+    const cuts  = moves.filter(m => m.mode === 'cut');
+    setText('gcode-moves', moves.length.toLocaleString('de-DE'));
+    setText('gcode-cuts', cuts.length.toLocaleString('de-DE'));
+    if (moves.length > 0) {
+      const xs = moves.map(m => m.x), ys = moves.map(m => m.y);
+      const W = (Math.max(...xs) - Math.min(...xs)).toFixed(1);
+      const H = (Math.max(...ys) - Math.min(...ys)).toFixed(1);
+      setText('gcode-bbox', `${W} × ${H} mm`);
+    }
+  } catch(e) { /* silent */ }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Batch conversion
+// ══════════════════════════════════════════════════════════════════════════
+function handleBatchFiles(files) {
+  batchFiles = files;
+  setText('batch-count-lbl', `${files.length} Dateien`);
+  document.getElementById('batch-result-section').classList.add('hidden');
+
+  const list = document.getElementById('batch-file-list');
+  list.innerHTML = '';
+  files.forEach((f, i) => {
+    const ext = fileExt(f.name);
+    const cat = getCat(normFmt(ext));
+    const item = document.createElement('div');
+    item.className = 'batch-item';
+    item.id = `batch-item-${i}`;
+    item.innerHTML = `
+      <span class="batch-item-icon">${catIcon(cat.key)}</span>
+      <span class="batch-item-name" title="${f.name}">${f.name}</span>
+      <span class="batch-item-fmt" style="color:${cat.color}">${(ext||'?').toUpperCase()}</span>
+      <span class="batch-item-status" id="batch-status-${i}" style="color:var(--muted)">–</span>
+    `;
+    list.appendChild(item);
+  });
+
+  showState('state-batch');
+}
+
+async function startBatch() {
+  const fmt = document.getElementById('batch-fmt').value.trim().replace(/^\./, '');
+  if (!fmt) { document.getElementById('batch-fmt').focus(); return; }
+  if (!batchFiles.length) return;
+
+  const btn = document.getElementById('batch-start-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Konvertiere…';
+
+  // Mark all as pending
+  batchFiles.forEach((_, i) => {
+    const s = document.getElementById(`batch-status-${i}`);
+    if (s) { s.textContent = '⏳'; s.style.color = 'var(--muted)'; }
+  });
+
+  const fd = new FormData();
+  fd.append('target_fmt', fmt);
+  batchFiles.forEach(f => fd.append('files', f));
+
+  try {
+    const r = await fetch('/api/batch', { method: 'POST', body: fd });
+    const data = await r.json();
+
+    if (data.log) {
+      data.log.forEach((entry, i) => {
+        const s = document.getElementById(`batch-status-${i}`);
+        if (!s) return;
+        if (entry.ok) { s.textContent = '✅'; s.style.color = 'var(--c-gis)'; }
+        else { s.textContent = '❌'; s.style.color = 'var(--c-embd)'; s.title = entry.msg || ''; }
+      });
+    }
+
+    const section = document.getElementById('batch-result-section');
+    const summary = document.getElementById('batch-summary');
+    section.classList.remove('hidden');
+
+    if (data.result_b64) {
+      const binary = atob(data.result_b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const dlBtn = document.getElementById('batch-dl-btn');
+      dlBtn.href = url;
+      dlBtn.download = `converted_${fmt}.zip`;
+      summary.innerHTML = `<b>${data.count_ok}</b> von ${batchFiles.length} erfolgreich konvertiert${data.count_err > 0 ? ` · <span style="color:var(--c-embd)">${data.count_err} Fehler</span>` : ''}`;
+    } else {
+      summary.innerHTML = `<span style="color:var(--c-embd)">Batch fehlgeschlagen</span>`;
+    }
+  } catch(e) {
+    setHTML('batch-summary', `<span style="color:var(--c-embd)">Fehler: ${e.message}</span>`);
+    document.getElementById('batch-result-section').classList.remove('hidden');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Alle konvertieren';
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// 3D STL Viewer (inline WebGL)
+// ══════════════════════════════════════════════════════════════════════════
+function init3DViewer(container, buffer) {
+  const wrap = document.createElement('div');
+  wrap.className = 'viewer3d-wrap';
+  const c = document.createElement('canvas');
+  c.style.cssText = 'width:100%;height:320px;display:block;cursor:grab';
+  const hint = document.createElement('div');
+  hint.className = 'viewer3d-hint';
+  hint.textContent = 'Ziehen zum Drehen';
+  wrap.appendChild(c); wrap.appendChild(hint);
+  container.innerHTML = '';
+  container.appendChild(wrap);
+
+  const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+  if (!gl) { container.innerHTML = '<div style="padding:2rem;color:var(--muted);text-align:center">WebGL nicht verfügbar</div>'; return; }
+
+  const vs = `attribute vec3 aP,aN;uniform mat4 uM;uniform mat3 uN;varying vec3 vN;
+    void main(){vN=normalize(uN*aN);gl_Position=uM*vec4(aP,1.);}`;
+  const fs = `precision mediump float;varying vec3 vN;
+    void main(){float d=max(dot(normalize(vN),normalize(vec3(1.,1.5,2.))),0.)*.8+.2;
+    vec3 col=mix(vec3(.28,.38,.62),vec3(.6,.75,1.),d);gl_FragColor=vec4(col,1.);}`;
+
+  function mkShader(t, s) {
+    const sh = gl.createShader(t);
+    gl.shaderSource(sh, s); gl.compileShader(sh); return sh;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  // Parse binary STL
+  const dv = new DataView(buffer);
+  let isASCII = false;
+  try { isASCII = new TextDecoder().decode(new Uint8Array(buffer, 0, 5)) === 'solid'; } catch(e){}
+
+  let verts, nTri = 0;
+  if (!isASCII && buffer.byteLength > 84) {
+    nTri = dv.getUint32(80, true);
+    verts = new Float32Array(nTri * 18);
+    let vi = 0, off = 84;
+    for (let i = 0; i < nTri; i++) {
+      const nx=dv.getFloat32(off,true),ny=dv.getFloat32(off+4,true),nz=dv.getFloat32(off+8,true);
+      off += 12;
+      for (let v = 0; v < 3; v++) {
+        verts[vi++]=dv.getFloat32(off,true); verts[vi++]=dv.getFloat32(off+4,true); verts[vi++]=dv.getFloat32(off+8,true);
+        verts[vi++]=nx; verts[vi++]=ny; verts[vi++]=nz;
+        off += 12;
+      }
+      off += 2;
+    }
+  } else {
+    container.innerHTML = '<div style="padding:2rem;color:var(--muted);text-align:center;font-size:.82rem">ASCII STL — Vorschau nur für Binary STL</div>';
+    return;
+  }
+
+  // Compute bounding box
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
+  for (let i = 0; i < nTri * 18; i += 6) {
+    if(verts[i]<minX)minX=verts[i]; if(verts[i]>maxX)maxX=verts[i];
+    if(verts[i+1]<minY)minY=verts[i+1]; if(verts[i+1]>maxY)maxY=verts[i+1];
+    if(verts[i+2]<minZ)minZ=verts[i+2]; if(verts[i+2]>maxZ)maxZ=verts[i+2];
+  }
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
+  const sz=Math.max(maxX-minX,maxY-minY,maxZ-minZ)||1;
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+  const aP=gl.getAttribLocation(prog,'aP'), aN=gl.getAttribLocation(prog,'aN');
+  gl.enableVertexAttribArray(aP); gl.enableVertexAttribArray(aN);
+  gl.vertexAttribPointer(aP,3,gl.FLOAT,false,24,0);
+  gl.vertexAttribPointer(aN,3,gl.FLOAT,false,24,12);
+  const uM=gl.getUniformLocation(prog,'uM'), uN=gl.getUniformLocation(prog,'uN');
+
+  // Column-major 4×4 matrix utils
+  const m4=()=>new Float32Array(16);
+  function mul(a,b){const r=m4();for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+i]*b[j*4+k];r[j*4+i]=s;}return r;}
+  function persp(fov,asp,n,f){const t=1/Math.tan(fov/2);return new Float32Array([t/asp,0,0,0,0,t,0,0,0,0,(f+n)/(n-f),-1,0,0,2*f*n/(n-f),0]);}
+  function rX(a){const c=Math.cos(a),s=Math.sin(a);return new Float32Array([1,0,0,0,0,c,s,0,0,-s,c,0,0,0,0,1]);}
+  function rY(a){const c=Math.cos(a),s=Math.sin(a);return new Float32Array([c,0,-s,0,0,1,0,0,s,0,c,0,0,0,0,1]);}
+  function tr(x,y,z){const m=m4();m[0]=m[5]=m[10]=m[15]=1;m[12]=x;m[13]=y;m[14]=z;return m;}
+  function sc(s){const m=m4();m[0]=m[5]=m[10]=s;m[15]=1;return m;}
+
+  let rx=-0.4, ry=0.6, drag=false, lx=0, ly=0;
+  c.addEventListener('mousedown', e=>{drag=true;lx=e.clientX;ly=e.clientY;c.style.cursor='grabbing';});
+  window.addEventListener('mouseup', ()=>{drag=false;c.style.cursor='grab';});
+  window.addEventListener('mousemove', e=>{if(!drag)return;ry+=(e.clientX-lx)*.012;rx+=(e.clientY-ly)*.012;lx=e.clientX;ly=e.clientY;});
+  c.addEventListener('touchstart', e=>{drag=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY;},{passive:true});
+  c.addEventListener('touchend', ()=>drag=false);
+  c.addEventListener('touchmove', e=>{if(!drag)return;ry+=(e.touches[0].clientX-lx)*.012;rx+=(e.touches[0].clientY-ly)*.012;lx=e.touches[0].clientX;ly=e.touches[0].clientY;},{passive:true});
+
+  let alive = true;
+  (function draw(){
+    if(!alive) return;
+    requestAnimationFrame(draw);
+    const W=c.clientWidth||500, H=c.clientHeight||320;
+    if(c.width!==W||c.height!==H){c.width=W;c.height=H;}
+    gl.viewport(0,0,W,H);
+    gl.clearColor(.05,.05,.1,1);
+    gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
+    const s=1.7/sz;
+    const model=mul(mul(rY(ry),rX(rx)),mul(sc(s),tr(-cx,-cy,-cz)));
+    const mvp=mul(persp(.7,W/H,.01,100),mul(tr(0,0,-3.2),model));
+    gl.uniformMatrix4fv(uM,false,mvp);
+    gl.uniformMatrix3fv(uN,false,new Float32Array([model[0],model[1],model[2],model[4],model[5],model[6],model[8],model[9],model[10]]));
+    gl.drawArrays(gl.TRIANGLES,0,nTri*3);
+  })();
+
+  // Cleanup when element removed
+  new MutationObserver(()=>{ if(!document.contains(c)) alive=false; }).observe(document.body,{childList:true,subtree:true});
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Convert
+// ══════════════════════════════════════════════════════════════════════════
+async function startConvert(targetFmt) {
+  if (!currentFile) return;
+
+  setText('progress-label', `Konvertiere → ${targetFmt.toUpperCase()}`);
+  setText('progress-sub', currentFile.name);
+  const fill = document.getElementById('progress-fill');
+  fill.className = 'progress-fill';
+  void fill.offsetWidth; // reset animation
+  showState('state-progress');
+
+  const fd = new FormData();
+  fd.append('file', currentFile);
+  fd.append('target_fmt', targetFmt);
+
+  // Quality & Resize (nur wenn Panel sichtbar und aktiv für dieses Format)
+  if (QUALITY_FMTS.has(targetFmt)) {
+    const q = document.getElementById('qp-quality');
+    const w = document.getElementById('qp-width');
+    const h = document.getElementById('qp-height');
+    if (q) fd.append('quality', q.value);
+    if (w && w.value) fd.append('resize_w', w.value);
+    if (h && h.value) fd.append('resize_h', h.value);
+  }
+
+  let data;
+  try {
+    const r = await fetch('/api/convert', { method: 'POST', body: fd });
+    data = await r.json();
+    if (!r.ok || (data.error && !data.result_b64)) {
+      throw new Error(data.detail || data.error || `HTTP ${r.status}`);
+    }
+  } catch(e) {
+    showState('state-file');
+    setHTML('error-container', `
+      <div class="error-card">
+        <div class="error-title">⚠ Konvertierung fehlgeschlagen</div>
+        <div class="error-msg">${e.message}</div>
+        <div class="error-actions">
+          <button class="btn-again" onclick="clearError()">Erneut versuchen</button>
+          <button class="btn-again" onclick="reset()">Neue Datei</button>
+        </div>
+      </div>`);
+    return;
+  }
+
+  fill.className = 'progress-fill done';
+  setTimeout(() => showResult(data, targetFmt), 400);
+}
+
+function clearError() { setHTML('error-container', ''); }
+
+// ══════════════════════════════════════════════════════════════════════════
+// Show result
+// ══════════════════════════════════════════════════════════════════════════
+function showResult(data, targetFmt) {
+  const binary = atob(data.result_b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+  const mime = getMime(targetFmt);
+  currentBlob = new Blob([bytes], { type: mime });
+  currentExt  = data.result_ext || targetFmt;
+
+  const url = URL.createObjectURL(currentBlob);
+  const dl = document.getElementById('btn-dl');
+  dl.href     = url;
+  dl.download = (currentFile.name.replace(/\.[^.]+$/, '') || 'converted') + '.' + currentExt;
+
+  setText('result-name', dl.download);
+  setText('result-info', targetFmt.toUpperCase() + ' · ' + fmtBytes(data.size_bytes));
+  document.getElementById('result-badge').textContent = currentExt.toUpperCase();
+
+  // Preview
+  const preview = document.getElementById('result-preview');
+  if (['jpeg','jpg','png','gif','webp','bmp','tiff','ico'].includes(targetFmt)) {
+    preview.innerHTML = `<img src="${url}" alt="Vorschau">`;
+  } else if (targetFmt === 'svg') {
+    const svgText = new TextDecoder().decode(bytes);
+    preview.innerHTML = `<div class="svg-wrap">${svgText}</div>`;
+  } else if (targetFmt === 'html') {
+    const htmlText = new TextDecoder().decode(bytes);
+    const safe = htmlText.replace(/"/g, '&quot;');
+    preview.innerHTML = `<iframe srcdoc="${safe}" style="width:100%;height:300px;border:none;background:#fff;border-radius:8px;" sandbox="allow-same-origin"></iframe>`;
+  } else if (MESH_FMTS.has(targetFmt) && targetFmt === 'stl') {
+    preview.innerHTML = '';
+    init3DViewer(preview, bytes.buffer);
+  } else {
+    const cat = getCat(targetFmt);
+    preview.innerHTML = `
+      <div class="result-no-preview">
+        <div class="np-icon" style="color:${cat.color}">${catIcon(cat.key)}</div>
+        <div class="np-label">${currentExt.toUpperCase()} · ${fmtBytes(data.size_bytes)}</div>
+      </div>`;
+  }
+
+  // Steps chain
+  const steps = data.steps || [];
+  const stepsHTML = steps.map((s, i) =>
+    `<span class="step-fmt${i === steps.length-1 ? ' last' : ''}">${s}</span>${i < steps.length-1 ? '<span class="step-arrow">→</span>' : ''}`
+  ).join('');
+  setHTML('steps-chain', stepsHTML);
+
+  showState('state-result');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Reset
+// ══════════════════════════════════════════════════════════════════════════
+function reset() {
+  currentFile = null;
+  currentFmt  = null;
+  selectedMachineFmt = null;
+  batchFiles  = [];
+  if (currentBlob) { URL.revokeObjectURL(currentBlob); currentBlob = null; }
+  document.getElementById('file-input').value = '';
+  document.getElementById('embd-panel').classList.add('hidden');
+  document.getElementById('gcode-panel').classList.add('hidden');
+  document.getElementById('quality-panel').classList.add('hidden');
+  document.getElementById('batch-result-section').classList.add('hidden');
+  showState('state-empty');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Theme
+// ══════════════════════════════════════════════════════════════════════════
+function toggleTheme() {
+  const root = document.documentElement;
+  const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  document.getElementById('theme-icon').textContent = next === 'dark' ? '☀' : '☾';
+  localStorage.setItem('converter-theme', next);
+}
+
+(function initTheme() {
+  const saved = localStorage.getItem('converter-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('theme-icon').textContent = theme === 'dark' ? '☀' : '☾';
+})();
+
+// Pre-load machine database
+fetchMachineDB();
+</script>
+</body>
+</html>

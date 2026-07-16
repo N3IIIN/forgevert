@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+stats.json
+*.log
+*.err
+.env
+start.bat
