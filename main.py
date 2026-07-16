@@ -7,6 +7,7 @@ import zipfile
 import io
 import json
 import time
+import threading
 import urllib.request
 import urllib.parse
 from collections import defaultdict
@@ -33,14 +34,24 @@ import converter as conv
 MAX_MB = int(os.getenv("MAX_FILE_MB", "500"))
 STATS_FILE = Path(__file__).parent / "stats.json"
 
-# ── Stats ─────────────────────────────────────────────────────────────────────
-def _load_stats():
+# ── Stats (in-memory, flushed to disk every N writes) ────────────────────────
+_STATS_LOCK = threading.Lock()
+_STATS_CACHE: dict | None = None
+_STATS_DIRTY = 0
+_STATS_FLUSH_EVERY = 10  # write to disk every 10 conversions
+
+def _load_stats() -> dict:
+    global _STATS_CACHE
+    if _STATS_CACHE is not None:
+        return _STATS_CACHE
     if STATS_FILE.exists():
         try:
-            return json.loads(STATS_FILE.read_text(encoding="utf-8"))
+            _STATS_CACHE = json.loads(STATS_FILE.read_text(encoding="utf-8"))
+            return _STATS_CACHE
         except Exception:
             pass
-    return {"conversions": [], "errors": []}
+    _STATS_CACHE = {"conversions": [], "errors": []}
+    return _STATS_CACHE
 
 def _save_stats(data: dict):
     try:
@@ -50,24 +61,29 @@ def _save_stats(data: dict):
 
 def _log_conversion(src_fmt: str, tgt_fmt: str, size_bytes: int, ok: bool,
                     steps: list = None, error: str = None, source: str = "upload"):
-    data = _load_stats()
-    entry = {
-        "ts": int(time.time()),
-        "src": src_fmt,
-        "tgt": tgt_fmt,
-        "size": size_bytes,
-        "ok": ok,
-        "source": source,
-    }
-    if steps:
-        entry["steps"] = steps
-    if error:
-        entry["error"] = error
-    if ok:
-        data["conversions"].append(entry)
-    else:
-        data["errors"].append(entry)
-    _save_stats(data)
+    global _STATS_DIRTY
+    with _STATS_LOCK:
+        data = _load_stats()
+        entry = {
+            "ts": int(time.time()),
+            "src": src_fmt,
+            "tgt": tgt_fmt,
+            "size": size_bytes,
+            "ok": ok,
+            "source": source,
+        }
+        if steps:
+            entry["steps"] = steps
+        if error:
+            entry["error"] = error
+        if ok:
+            data["conversions"].append(entry)
+        else:
+            data["errors"].append(entry)
+        _STATS_DIRTY += 1
+        if _STATS_DIRTY >= _STATS_FLUSH_EVERY:
+            _save_stats(data)
+            _STATS_DIRTY = 0
 
 app = FastAPI(title="Universal Converter")
 

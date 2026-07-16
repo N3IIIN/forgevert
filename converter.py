@@ -577,8 +577,8 @@ def _pptx_to_pdf(src, dst, **kw):
 
 # ══════════ TABELLEN / DATEN ══════════
 
-_DATA_READERS = None
-_DATA_WRITERS = None
+_DATA_READERS = None  # cached on first use
+_DATA_WRITERS = None  # cached on first use
 
 def _pd_read_json(p):
     """JSON → DataFrame; normalisiert flache Dicts und einfache Objekte."""
@@ -694,13 +694,14 @@ def _get_data_writers():
     return writers
 
 def _data_convert(src, dst, **kw):
-    readers = _get_data_readers()
-    writers = _get_data_writers()
+    global _DATA_READERS, _DATA_WRITERS
+    if _DATA_READERS is None: _DATA_READERS = _get_data_readers()
+    if _DATA_WRITERS is None: _DATA_WRITERS = _get_data_writers()
     src_ext = norm(Path(src).suffix)
     dst_ext = norm(Path(dst).suffix)
-    if src_ext not in readers: raise ValueError(f"Unbekanntes Quellformat: {src_ext}")
-    if dst_ext not in writers: raise ValueError(f"Unbekanntes Zielformat: {dst_ext}")
-    writers[dst_ext](readers[src_ext](src), dst)
+    if src_ext not in _DATA_READERS: raise ValueError(f"Unbekanntes Quellformat: {src_ext}")
+    if dst_ext not in _DATA_WRITERS: raise ValueError(f"Unbekanntes Zielformat: {dst_ext}")
+    _DATA_WRITERS[dst_ext](_DATA_READERS[src_ext](src), dst)
 
 def _sqlite_to_json(src, dst, **kw):
     import sqlite3, json
@@ -1034,11 +1035,6 @@ def _stl_to_step(src, dst, **kw):
     except Exception: pass
     writer = STEPControl_Writer(); writer.Transfer(sewn, STEPControl_AsIs); writer.Write(dst)
 
-def _step_to_svg(src, dst, **kw):
-    from build123d import import_step
-    from cadquery_bridge_helper import multiview_svg
-    svg = multiview_svg(import_step(src), ["front","side","top"])
-    Path(dst).write_text(svg, encoding="utf-8")
 
 def _dxf_to_svg(src, dst, **kw):
     import ezdxf
@@ -1879,7 +1875,13 @@ if _BLENDER:
 if _PYSHP:
     GRAPH[("shp","geojson")] = _shp_to_geojson
     if _PANDAS:
-        GRAPH[("shp","csv")] = lambda s,d,**k: _shp_to_geojson(s, d+"_tmp.geojson") or _data_convert(d+"_tmp.geojson",d)
+        def _shp_to_csv(src, dst, **kw):
+            tmp = dst + "_tmp.geojson"
+            try: _shp_to_geojson(src, tmp); _data_convert(tmp, dst, **kw)
+            finally:
+                try: os.unlink(tmp)
+                except OSError: pass
+        GRAPH[("shp","csv")] = _shp_to_csv
 
 GRAPH[("geojson","kml")] = _geojson_to_kml
 GRAPH[("kml","geojson")] = _kml_to_geojson
@@ -2071,7 +2073,13 @@ GRAPH[("srt","ssa")] = _srt_to_ass
 GRAPH[("ass","srt")] = _ass_to_srt
 GRAPH[("ssa","srt")] = _ass_to_srt
 GRAPH[("sub","srt")] = _sub_to_srt
-GRAPH[("vtt","ass")] = lambda s,d,**k: (_vtt_to_srt(s, s+"_tmp.srt") or _srt_to_ass(s+"_tmp.srt", d))
+def _vtt_to_ass(src, dst, **kw):
+    tmp = src + "_tmp.srt"
+    try: _vtt_to_srt(src, tmp); _srt_to_ass(tmp, dst)
+    finally:
+        try: os.unlink(tmp)
+        except OSError: pass
+GRAPH[("vtt","ass")] = _vtt_to_ass
 
 # Untertitel → TXT (plain text)
 def _sub_to_txt(src, dst, **kw):
@@ -2188,9 +2196,22 @@ if _YAML:
     GRAPH[("yml","json")]   = _yaml_to_json
     GRAPH[("json","yaml")]  = _json_to_yaml
     GRAPH[("yaml","csv")]   = _yaml_to_csv
-    for d in ("csv","tsv","xlsx","xml","parquet"):
-        GRAPH[("yaml",d)] = lambda s,o,**k: (_yaml_to_json(s, s+"_tmp.json") or _data_convert(s+"_tmp.json",o,**k)) if _PANDAS else None
-    GRAPH[("csv","yaml")] = lambda s,o,**k: (_data_convert(s,s+"_tmp.json",**k) or _json_to_yaml(s+"_tmp.json",o,**k)) if _PANDAS else None
+    if _PANDAS:
+        def _yaml_to_data(src, dst, **kw):
+            tmp = src + "_tmp.json"
+            try: _yaml_to_json(src, tmp); _data_convert(tmp, dst, **kw)
+            finally:
+                try: os.unlink(tmp)
+                except OSError: pass
+        def _csv_to_yaml(src, dst, **kw):
+            tmp = src + "_tmp.json"
+            try: _data_convert(src, tmp, **kw); _json_to_yaml(tmp, dst, **kw)
+            finally:
+                try: os.unlink(tmp)
+                except OSError: pass
+        for d in ("csv","tsv","xlsx","xml","parquet"):
+            GRAPH[("yaml",d)] = _yaml_to_data
+        GRAPH[("csv","yaml")] = _csv_to_yaml
 
 # TOML ↔ JSON — tomllib ist Python 3.11+ stdlib
 def _toml_to_json(src, dst, **kw):
@@ -2362,8 +2383,15 @@ if _EXTRACTMSG:
     GRAPH[("msg","txt")]  = _msg_to_txt
     GRAPH[("msg","html")] = _msg_to_html
     if _PANDOC or _REPORTLAB:
-        GRAPH[("msg","pdf")] = lambda s,d,**k: (_msg_to_html(s,s+"_tmp.html") or
-                                                 (_pandoc(s+"_tmp.html",d) if _PANDOC else _html_to_pdf(s+"_tmp.html",d)))
+        def _msg_to_pdf(src, dst, **kw):
+            tmp = src + "_tmp.html"
+            try:
+                _msg_to_html(src, tmp)
+                _pandoc(tmp, dst) if _PANDOC else _html_to_pdf(tmp, dst)
+            finally:
+                try: os.unlink(tmp)
+                except OSError: pass
+        GRAPH[("msg","pdf")] = _msg_to_pdf
 
 GRAPH[("eml","txt")]  = _eml_to_txt
 GRAPH[("eml","html")] = _eml_to_html
@@ -2421,16 +2449,21 @@ def _vcf_to_json(src, dst, **kw):
 
 def _vcf_to_csv(src, dst, **kw):
     import csv
-    _vcf_to_json(src, src + "_tmp.json")
-    items = json.loads(Path(src + "_tmp.json").read_text())
-    if isinstance(items, dict): items = [items]
-    if not items: raise ValueError("VCF enthält keine Kontakte")
-    keys = list({k for c in items for k in c.keys()})
-    with open(dst, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=keys)
-        w.writeheader()
-        for c in items:
-            w.writerow({k: ("; ".join(v) if isinstance(v,list) else v) for k,v in c.items()})
+    tmp = src + "_tmp.json"
+    try:
+        _vcf_to_json(src, tmp)
+        items = json.loads(Path(tmp).read_text())
+        if isinstance(items, dict): items = [items]
+        if not items: raise ValueError("VCF enthält keine Kontakte")
+        keys = list({k for c in items for k in c.keys()})
+        with open(dst, "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=keys)
+            w.writeheader()
+            for c in items:
+                w.writerow({k: ("; ".join(v) if isinstance(v,list) else v) for k,v in c.items()})
+    finally:
+        try: os.unlink(tmp)
+        except OSError: pass
 
 GRAPH[("vcf","json")] = _vcf_to_json
 GRAPH[("vcf","csv")]  = _vcf_to_csv
@@ -2477,13 +2510,18 @@ def _ics_to_json(src, dst, **kw):
 
 def _ics_to_csv(src, dst, **kw):
     import csv
-    _ics_to_json(src, src + "_tmp.json")
-    events = json.loads(Path(src + "_tmp.json").read_text())
-    if not events: raise ValueError("ICS enthält keine Einträge")
-    keys = list(events[0].keys())
-    with open(dst, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=keys)
-        w.writeheader(); w.writerows(events)
+    tmp = src + "_tmp.json"
+    try:
+        _ics_to_json(src, tmp)
+        events = json.loads(Path(tmp).read_text())
+        if not events: raise ValueError("ICS enthält keine Einträge")
+        keys = list(events[0].keys())
+        with open(dst, "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=keys)
+            w.writeheader(); w.writerows(events)
+    finally:
+        try: os.unlink(tmp)
+        except OSError: pass
 
 GRAPH[("ics","json")] = _ics_to_json
 GRAPH[("ics","csv")]  = _ics_to_csv
@@ -2578,20 +2616,9 @@ def _dxf_to_json(src, dst, **kw):
     Path(dst).write_text(json.dumps({"entities": entities, "count": len(entities)},
                                     indent=2, default=str, ensure_ascii=False), encoding="utf-8")
 
-def _dxf_to_pdf(src, dst, **kw):
-    """DXF → PDF via Inkscape (SVG-Zwischenschritt)"""
-    svg_tmp = dst + "_tmp.svg"
-    try:
-        _dxf_to_svg(src, svg_tmp)
-        _svg_to_pdf(svg_tmp, dst)
-    finally:
-        try: os.unlink(svg_tmp)
-        except: pass
-
 if _EZDXF:
     GRAPH[("dxf","json")] = _dxf_to_json
-    GRAPH[("dxf","pdf")]  = _dxf_to_pdf
-    GRAPH[("dxf","png")]  = lambda s,d,**k: (_dxf_to_svg(s,s+"_tmp.svg") or _svg_to_png(s+"_tmp.svg",d))
+    # dxf→pdf und dxf→png bereits via Matplotlib oben registriert — kein Override
 
 # ══════════ G-CODE ERWEITERUNG ══════════
 
@@ -2697,11 +2724,22 @@ GRAPH[("geojson","csv")]  = _geojson_to_csv
 GRAPH[("csv","geojson")]  = _csv_to_geojson
 _shp_writer = _geojson_to_shp_fiona if _FIONA else _geojson_to_shp if _PYSHP else None
 if _shp_writer:
-    GRAPH[("csv","shp")] = lambda s,d,**k: (_csv_to_geojson(s,s+"_tmp.geojson") or _shp_writer(s+"_tmp.geojson",d))
+    def _csv_to_shp(src, dst, **kw):
+        tmp = src + "_tmp.geojson"
+        try: _csv_to_geojson(src, tmp); _shp_writer(tmp, dst)
+        finally:
+            try: os.unlink(tmp)
+            except OSError: pass
+    GRAPH[("csv","shp")] = _csv_to_shp
 
 # ── BFS ──────────────────────────────────────────────────────────────────────
 
 ALL_FORMATS: list = sorted({fmt for pair in GRAPH for fmt in pair})
+
+# Adjazenz-Dict: O(1)-Lookup statt O(N) Iteration über alle Kanten
+_ADJ: dict = {}
+for (_ga, _gb) in GRAPH:
+    _ADJ.setdefault(_ga, []).append(_gb)
 
 # ── LibreOffice Listener vorwärmen ────────────────────────────────────────────
 if _SOFFICE and _LO_PYTHON:
@@ -2714,9 +2752,9 @@ def find_path(src: str, tgt: str):
     visited: set = {src}
     while queue:
         cur, path = queue.popleft()
-        for (a, b) in GRAPH:
-            if a == cur and b not in visited:
-                new_path = path + [(a, b)]
+        for b in _ADJ.get(cur, []):
+            if b not in visited:
+                new_path = path + [(cur, b)]
                 if b == tgt: return new_path
                 visited.add(b); queue.append((b, new_path))
     return None
@@ -2730,12 +2768,11 @@ def list_targets(src: str, max_hops: int = 2) -> list:
         cur, hops = queue.popleft()
         if hops >= max_hops:
             continue
-        for (a, b) in GRAPH:
-            if a == cur:
-                reachable.add(b)
-                if b not in visited:
-                    visited.add(b)
-                    queue.append((b, hops + 1))
+        for b in _ADJ.get(cur, []):
+            reachable.add(b)
+            if b not in visited:
+                visited.add(b)
+                queue.append((b, hops + 1))
     reachable.discard(src)
     return sorted(reachable)
 
