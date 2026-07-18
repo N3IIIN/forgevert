@@ -30,8 +30,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 libxi6 libxxf86vm1 libxfixes3 xz-utils \
     && rm -rf /var/lib/apt/lists/*
-COPY fetch_blender.sh /tmp/fetch_blender.sh
-RUN sh /tmp/fetch_blender.sh && rm /tmp/fetch_blender.sh
+COPY fetch_blender.py /tmp/fetch_blender.py
+RUN python3 /tmp/fetch_blender.py \
+    && tar -xf /tmp/blender.tar.xz -C /opt/ \
+    && BDIR=$(ls -dt /opt/blender-*-linux-x64 | head -1) \
+    && ln -sf "$BDIR/blender" /usr/local/bin/blender \
+    && rm /tmp/blender.tar.xz /tmp/fetch_blender.py
 
 WORKDIR /app
 
