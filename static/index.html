@@ -132,6 +132,151 @@ body::after {
   background: radial-gradient(circle, rgba(6,182,212,0.05) 0%, transparent 65%);
 }
 
+/* ── Nav ─────────────────────────────────────────────────────────────────── */
+.header-nav {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+.header-nav a {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted-hi);
+  text-decoration: none;
+  padding: 0.3em 0.7em;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.header-nav a:hover { color: var(--text); background: rgba(124,58,237,0.1); }
+@media (max-width: 600px) { .header-nav { display: none; } }
+
+/* ── Popular Conversions ─────────────────────────────────────────────────── */
+.popular-section {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 3rem 1.5rem;
+}
+.popular-inner { max-width: 820px; margin: 0 auto; }
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.popular-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+.pop-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted-hi);
+  text-decoration: none;
+  padding: 0.4em 1em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg3);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.pop-link:hover { color: var(--accent-hi); border-color: var(--accent); background: rgba(124,58,237,0.08); }
+
+/* ── Features ────────────────────────────────────────────────────────────── */
+.features-section {
+  padding: 3.5rem 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.features-inner { max-width: 820px; margin: 0 auto; }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.feat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.4rem;
+  transition: border-color 0.2s;
+}
+.feat-card:hover { border-color: var(--border-hi); }
+.feat-icon { font-size: 1.6rem; margin-bottom: 0.75rem; }
+.feat-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+.feat-card p { font-size: 0.82rem; color: var(--muted-hi); line-height: 1.6; }
+
+/* ── How it works ────────────────────────────────────────────────────────── */
+.how-section {
+  padding: 3.5rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+}
+.how-inner { max-width: 820px; margin: 0 auto; }
+.how-steps {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.how-step {
+  flex: 1;
+  min-width: 180px;
+  max-width: 240px;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.how-num {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem;
+  box-shadow: 0 0 16px var(--glow);
+}
+.how-step h3 { font-size: 0.92rem; font-weight: 700; margin-bottom: 0.4rem; }
+.how-step p { font-size: 0.8rem; color: var(--muted-hi); line-height: 1.6; }
+.how-arrow { font-size: 1.5rem; color: var(--muted); flex-shrink: 0; }
+@media (max-width: 600px) { .how-arrow { transform: rotate(90deg); } }
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 3rem 1.5rem 1.5rem;
+  background: var(--bg);
+}
+.footer-inner {
+  max-width: 820px;
+  margin: 0 auto;
+  display: flex;
+  gap: 3rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.footer-brand { flex: 1; min-width: 180px; }
+.footer-tagline { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
+.footer-links { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+.footer-col { display: flex; flex-direction: column; gap: 0.5rem; }
+.footer-col-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
+.footer-col a { font-size: 0.82rem; color: var(--muted-hi); text-decoration: none; }
+.footer-col a:hover { color: var(--text); }
+.footer-bottom {
+  max-width: 820px;
+  margin: 0 auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
 /* ── Header ──────────────────────────────────────────────────────────────── */
 header {
   position: sticky;
@@ -1030,6 +1175,14 @@ kbd {
     <div class="logo-mark">F</div>
     Forgevert
   </a>
+  <nav class="header-nav">
+    <a href="#" onclick="scrollToFmt('img')">Bilder</a>
+    <a href="#" onclick="scrollToFmt('audio')">Audio</a>
+    <a href="#" onclick="scrollToFmt('video')">Video</a>
+    <a href="#" onclick="scrollToFmt('doc')">Dokumente</a>
+    <a href="#" onclick="scrollToFmt('3d')">3D</a>
+    <a href="/stats.html">Stats</a>
+  </nav>
   <div class="header-actions">
     <button class="icon-btn" id="theme-btn" title="Theme wechseln" onclick="toggleTheme()">
       <span id="theme-icon">☀</span>
@@ -1250,6 +1403,132 @@ kbd {
   </div><!-- /state-result -->
 
 </div><!-- /wrap -->
+
+<!-- ══ POPULAR CONVERSIONS ══════════════════════════════════════════════════ -->
+<section class="popular-section">
+  <div class="popular-inner">
+    <h2 class="section-title">Beliebte Konvertierungen</h2>
+    <div class="popular-grid">
+      <a class="pop-link" href="#" onclick="quickConvert('pdf','docx')">PDF → Word</a>
+      <a class="pop-link" href="#" onclick="quickConvert('pdf','jpg')">PDF → JPG</a>
+      <a class="pop-link" href="#" onclick="quickConvert('jpg','pdf')">JPG → PDF</a>
+      <a class="pop-link" href="#" onclick="quickConvert('png','jpg')">PNG → JPG</a>
+      <a class="pop-link" href="#" onclick="quickConvert('jpg','png')">JPG → PNG</a>
+      <a class="pop-link" href="#" onclick="quickConvert('mp4','mp3')">MP4 → MP3</a>
+      <a class="pop-link" href="#" onclick="quickConvert('mp3','wav')">MP3 → WAV</a>
+      <a class="pop-link" href="#" onclick="quickConvert('docx','pdf')">Word → PDF</a>
+      <a class="pop-link" href="#" onclick="quickConvert('heic','jpg')">HEIC → JPG</a>
+      <a class="pop-link" href="#" onclick="quickConvert('svg','png')">SVG → PNG</a>
+      <a class="pop-link" href="#" onclick="quickConvert('webp','jpg')">WEBP → JPG</a>
+      <a class="pop-link" href="#" onclick="quickConvert('stl','obj')">STL → OBJ</a>
+      <a class="pop-link" href="#" onclick="quickConvert('csv','xlsx')">CSV → Excel</a>
+      <a class="pop-link" href="#" onclick="quickConvert('xlsx','csv')">Excel → CSV</a>
+      <a class="pop-link" href="#" onclick="quickConvert('mov','mp4')">MOV → MP4</a>
+      <a class="pop-link" href="#" onclick="quickConvert('avi','mp4')">AVI → MP4</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FEATURES ═════════════════════════════════════════════════════════════ -->
+<section class="features-section">
+  <div class="features-inner">
+    <h2 class="section-title">Warum Forgevert?</h2>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <h3>Blitzschnell</h3>
+        <p>Konvertierungen dauern Sekunden — direkt in der Cloud, kein Warten auf Upload.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🗂️</div>
+        <h3>150+ Formate</h3>
+        <p>Bilder, Video, Audio, 3D, PDF, Office, GIS, Stickerei, DICOM und mehr — alles in einem Tool.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔒</div>
+        <h3>Sicher</h3>
+        <p>Dateien werden nach der Konvertierung sofort gelöscht. Kein Account, keine Registrierung nötig.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💸</div>
+        <h3>100% Kostenlos</h3>
+        <p>Keine versteckten Kosten, kein Abo, keine Limits. Einfach konvertieren.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📦</div>
+        <h3>Batch-Konvertierung</h3>
+        <p>Mehrere Dateien gleichzeitig hochladen — alle auf einmal konvertieren und als ZIP herunterladen.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">☁️</div>
+        <h3>Cloud-basiert</h3>
+        <p>Keine Installation. Funktioniert auf jedem Gerät — Windows, Mac, Linux, Smartphone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══════════════════════════════════════════════════════════ -->
+<section class="how-section">
+  <div class="how-inner">
+    <h2 class="section-title">So einfach geht's</h2>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-num">1</div>
+        <h3>Datei hochladen</h3>
+        <p>Datei per Drag &amp; Drop ablegen, aus dem Ordner auswählen oder per URL laden.</p>
+      </div>
+      <div class="how-arrow">→</div>
+      <div class="how-step">
+        <div class="how-num">2</div>
+        <h3>Format wählen</h3>
+        <p>Zielformat auswählen — Forgevert zeigt automatisch alle kompatiblen Formate.</p>
+      </div>
+      <div class="how-arrow">→</div>
+      <div class="how-step">
+        <div class="how-num">3</div>
+        <h3>Herunterladen</h3>
+        <p>Konvertierung starten und die fertige Datei direkt herunterladen.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="#" style="text-decoration:none">
+        <div class="logo-mark">F</div>
+        Forgevert
+      </a>
+      <p class="footer-tagline">Kostenloser Online File Converter · 150+ Formate</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <span class="footer-col-title">Tool</span>
+        <a href="#">Converter</a>
+        <a href="/stats.html">Statistiken</a>
+        <a href="https://github.com/N3IIIN/forgevert" target="_blank">GitHub</a>
+      </div>
+      <div class="footer-col">
+        <span class="footer-col-title">Formate</span>
+        <a href="#" onclick="scrollToFmt('img')">Bilder</a>
+        <a href="#" onclick="scrollToFmt('audio')">Audio</a>
+        <a href="#" onclick="scrollToFmt('video')">Video</a>
+        <a href="#" onclick="scrollToFmt('doc')">Dokumente</a>
+      </div>
+      <div class="footer-col">
+        <span class="footer-col-title">Rechtliches</span>
+        <a href="/impressum.html">Impressum</a>
+        <a href="/datenschutz.html">Datenschutz</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Forgevert · Alle Rechte vorbehalten</span>
+  </div>
+</footer>
 
 <script>
 // ══════════════════════════════════════════════════════════════════════════
@@ -2154,6 +2433,22 @@ function toggleTheme() {
 
 // Pre-load machine database
 fetchMachineDB();
+
+// Quick convert: set target format and scroll to drop zone
+function quickConvert(src, tgt) {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Store as pending so user knows what to upload
+  sessionStorage.setItem('quickTarget', tgt);
+  const dz = document.getElementById('drop-zone');
+  if (dz) { dz.style.outline = '2px solid var(--accent)'; setTimeout(() => dz.style.outline = '', 1500); }
+  return false;
+}
+
+// Scroll to format category in overview grid
+function scrollToFmt(cat) {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  return false;
+}
 </script>
 </body>
 </html>
