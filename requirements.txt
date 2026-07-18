@@ -88,9 +88,6 @@ psd-tools>=1.10            # PSD / PSB → PNG
 # ── besseres HTML→PDF ──────────────────────────────────────────────────────────
 # weasyprint>=62.0         # aktivieren wenn kein LibreOffice verfügbar
 
-# ── STEP/BREP/IGES (OpenCASCADE Python-Bindings, ~500MB) ───────────────────────
-OCP>=7.7.0.0  # STEP ↔ BREP ↔ IGES ↔ STL via OpenCASCADE
-
 # ── Config / Daten ─────────────────────────────────────────────────────────────
 PyYAML>=6.0                # YAML ↔ JSON
 tomli-w>=1.0               # JSON → TOML (tomllib lesen ist Python 3.11 stdlib)
