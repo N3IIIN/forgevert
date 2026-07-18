@@ -65,9 +65,6 @@ pydicom>=2.4               # DICOM → PNG / TIFF
 # ── LiDAR / Punktwolke ─────────────────────────────────────────────────────────
 laspy>=2.5                 # LAS / LAZ Punktwolken
 
-# ── PCB / Elektronik ───────────────────────────────────────────────────────────
-gerber>=0.14               # Gerber-Dateien → SVG / PNG
-
 # ── Archive ────────────────────────────────────────────────────────────────────
 py7zr>=0.21                # 7-Zip
 rarfile>=4.2               # RAR (benötigt unrar im System)
