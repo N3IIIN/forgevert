@@ -10,13 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     libgomp1 \
     libcairo2-dev \
-    inkscape \
     ghostscript \
-    # LibreOffice (Office → PDF/DOCX/ODP)
-    libreoffice-writer \
-    libreoffice-calc \
-    libreoffice-impress \
-    python3-uno \
     # Pandoc (Markup-Konvertierungen)
     pandoc \
     # Archive
