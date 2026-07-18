@@ -37,6 +37,7 @@ xlwt>=1.3                  # Legacy XLS schreiben (pandas 2.x unterstützt es ni
 # ── 3D / Mesh ──────────────────────────────────────────────────────────────────
 trimesh>=4.5
 numpy>=1.26
+networkx>=3.2
 ezdxf>=1.3
 
 # ── Rhino / BIM ────────────────────────────────────────────────────────────────
