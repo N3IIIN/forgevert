@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forgevert — Stats</title>
+<style>
+  :root {
+    --bg: #0d0d14;
+    --card: #13131f;
+    --border: #1e1e30;
+    --text: #e2e2f0;
+    --muted: #6b6b8a;
+    --accent: #7c3aed;
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --teal: #14b8a6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; padding: 2rem 1rem; min-height: 100vh; }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: .25rem; }
+  .sub { color: var(--muted); font-size: .9rem; margin-bottom: 2rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+  .stat-card .label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .5rem; }
+  .stat-card .value { font-size: 2rem; font-weight: 800; }
+  .stat-card.green .value { color: var(--green); }
+  .stat-card.red   .value { color: var(--red); }
+  .stat-card.blue  .value { color: var(--blue); }
+  .stat-card.teal  .value { color: var(--teal); }
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+  .bar-list { display: flex; flex-direction: column; gap: .5rem; }
+  .bar-row { display: grid; grid-template-columns: 160px 1fr 3rem; align-items: center; gap: .75rem; }
+  .bar-label { font-size: .82rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { background: var(--border); border-radius: 4px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width .4s ease; }
+  .bar-fill.blue { background: var(--blue); }
+  .bar-fill.teal { background: var(--teal); }
+  .bar-count { font-size: .82rem; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .month-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; margin-top: .5rem; }
+  .month-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .month-bar { width: 100%; border-radius: 3px 3px 0 0; min-height: 2px; }
+  .month-ok  { background: var(--accent); }
+  .month-err { background: var(--red); }
+  .month-label { font-size: .62rem; color: var(--muted); white-space: nowrap; }
+  table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+  th { text-align: left; color: var(--muted); font-weight: 500; padding: .4rem .5rem; border-bottom: 1px solid var(--border); }
+  td { padding: .4rem .5rem; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  td.ok  { color: var(--green); }
+  td.err { color: var(--red); }
+  .loading { color: var(--muted); text-align: center; padding: 3rem; }
+  .refresh { float: right; font-size: .8rem; color: var(--muted); cursor: pointer; background: none; border: 1px solid var(--border); color: var(--muted); padding: .3rem .75rem; border-radius: 6px; }
+  .refresh:hover { border-color: var(--accent); color: var(--accent); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div style="max-width:900px;margin:0 auto">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem">
+    <h1>Forgevert Stats</h1>
+    <button class="refresh" onclick="load()">↻ Aktualisieren</button>
+  </div>
+  <p class="sub">Konvertierungen seit letztem Server-Start · <a href="/">← Zurück</a></p>
+
+  <div id="root"><p class="loading">Lade Statistiken…</p></div>
+</div>
+
+<script>
+async function load() {
+  const root = document.getElementById('root');
+  try {
+    const r = await fetch('/api/stats');
+    if (!r.ok) throw new Error(r.statusText);
+    const d = await r.json();
+    render(d);
+  } catch(e) {
+    root.innerHTML = `<p class="loading" style="color:#ef4444">Fehler: ${e.message}</p>`;
+  }
+}
+
+function fmt(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1)+'GB';
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'MB';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'KB';
+  return n+'B';
+}
+
+function barList(items, cls='') {
+  if (!items.length) return '<p style="color:var(--muted);font-size:.85rem">Noch keine Daten</p>';
+  const max = items[0][1];
+  return `<div class="bar-list">${items.map(([label,count]) => `
+    <div class="bar-row">
+      <span class="bar-label" title="${label}">${label}</span>
+      <div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.round(count/max*100)}%"></div></div>
+      <span class="bar-count">${count}</span>
+    </div>`).join('')}</div>`;
+}
+
+function monthChart(months) {
+  if (!months.length) return '<p style="color:var(--muted);font-size:.85rem">Noch keine Daten</p>';
+  const maxVal = Math.max(...months.map(m => m.ok + m.err), 1);
+  return `<div class="month-chart">${months.map(m => {
+    const total = m.ok + m.err;
+    const okH   = Math.round(m.ok  / maxVal * 72);
+    const errH  = Math.round(m.err / maxVal * 72);
+    return `<div class="month-col" title="${m.month}: ${m.ok} OK, ${m.err} Fehler">
+      <div class="month-bar month-err" style="height:${errH}px"></div>
+      <div class="month-bar month-ok"  style="height:${okH}px"></div>
+      <span class="month-label">${m.month.slice(5)}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function render(d) {
+  const total = d.total_ok + d.total_err;
+  const errPct = total ? Math.round(d.total_err / total * 100) : 0;
+
+  const recentRows = (d.recent || []).slice().reverse().map(c => {
+    const ts = new Date(c.ts * 1000).toLocaleString('de-DE');
+    const status = c.ok
+      ? `<td class="ok">OK</td>`
+      : `<td class="err" title="${c.error||''}">Fehler</td>`;
+    return `<tr><td>${ts}</td><td>${c.src}</td><td>${c.tgt}</td>${status}<td>${fmt(c.size||0)}</td><td>${c.source||'-'}</td></tr>`;
+  }).join('');
+
+  document.getElementById('root').innerHTML = `
+    <div class="grid">
+      <div class="stat-card green"><div class="label">Erfolgreich</div><div class="value">${d.total_ok.toLocaleString('de')}</div></div>
+      <div class="stat-card red">  <div class="label">Fehler</div>    <div class="value">${d.total_err.toLocaleString('de')}</div></div>
+      <div class="stat-card blue"> <div class="label">Fehlerrate</div><div class="value">${errPct}%</div></div>
+      <div class="stat-card teal"> <div class="label">Datenvolumen</div><div class="value">${fmt(d.bytes_total||0)}</div></div>
+    </div>
+
+    <div class="section">
+      <h2>Konvertierungen pro Monat</h2>
+      ${monthChart(d.by_month||[])}
+      <div style="display:flex;gap:1rem;margin-top:.75rem;font-size:.75rem;color:var(--muted)">
+        <span style="color:var(--accent)">■</span> Erfolgreich &nbsp;
+        <span style="color:var(--red)">■</span> Fehler
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+      <div class="section">
+        <h2>Top Konvertierungen</h2>
+        ${barList(d.top_pairs||[])}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1.5rem">
+        <div class="section">
+          <h2>Top Quellformate</h2>
+          ${barList(d.top_src||[], 'blue')}
+        </div>
+        <div class="section">
+          <h2>Top Zielformate</h2>
+          ${barList(d.top_tgt||[], 'teal')}
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Letzte 50 Konvertierungen</h2>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Zeit</th><th>Von</th><th>Nach</th><th>Status</th><th>Größe</th><th>Quelle</th></tr></thead>
+          <tbody>${recentRows || '<tr><td colspan="6" style="color:var(--muted);text-align:center">Noch keine Daten</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+load();
+</script>
+</body>
+</html>
