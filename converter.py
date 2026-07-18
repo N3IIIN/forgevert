@@ -425,6 +425,42 @@ def _txt_to_docx(src, dst, **kw):
         doc.add_paragraph(line)
     doc.save(dst)
 
+def _docx_to_pdf_native(src, dst, **kw):
+    """python-docx + reportlab fallback (kein LibreOffice/LaTeX nötig)."""
+    import docx
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+
+    doc = docx.Document(src)
+    pdf = SimpleDocTemplate(dst, pagesize=A4,
+                            leftMargin=2.5*cm, rightMargin=2.5*cm,
+                            topMargin=2.5*cm, bottomMargin=2.5*cm)
+    styles = getSampleStyleSheet()
+    story = []
+
+    for p in doc.paragraphs:
+        text = p.text.strip()
+        if not text:
+            story.append(Spacer(1, 6))
+            continue
+        style_name = "Normal"
+        if p.style and p.style.name.startswith("Heading"):
+            lvl = p.style.name.split()[-1]
+            if lvl.isdigit() and 1 <= int(lvl) <= 3:
+                style_name = f"Heading{lvl}"
+        import html as _html_mod
+        safe = _html_mod.escape(text)
+        if p.style and "Bold" in (p.style.name or ""):
+            safe = f"<b>{safe}</b>"
+        story.append(Paragraph(safe, styles[style_name]))
+        story.append(Spacer(1, 3))
+
+    if not story:
+        story.append(Paragraph("(Leer)", styles["Normal"]))
+    pdf.build(story)
+
 def _pdf_to_docx(src, dst, **kw):
     from pdf2docx import Converter as PdfConverter
     cv = PdfConverter(src)
@@ -1813,6 +1849,12 @@ if _PANDOC:
             if a != b: GRAPH[(a,b)] = _pandoc
     GRAPH[("rst","html")] = _pandoc
     GRAPH[("latex","pdf")] = _pandoc
+
+# Native fallback: pandoc→pdf needs LaTeX which is not installed on the server.
+# Override docx→pdf with the python-docx + reportlab converter when LibreOffice
+# is also unavailable (preserves text and headings without any system deps).
+if not _SOFFICE:
+    GRAPH[("docx","pdf")] = _docx_to_pdf_native
 
 if _EBOOKLIB:
     GRAPH[("epub","txt")]  = _epub_to_txt
