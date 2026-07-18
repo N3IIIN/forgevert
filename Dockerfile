@@ -25,9 +25,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Blender (BLEND / FBX → GLB / STL / OBJ / PLY / X3D) ────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends blender \
+# ── Blender 4.x standalone (Debian-Paket ist 3.4 → kann keine 4.x .blend öffnen) ──
+# Extra-Libs die Blender headless braucht
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libxrender1 libxi6 libxxf86vm1 libxfixes3 xz-utils \
     && rm -rf /var/lib/apt/lists/*
+RUN wget -q "https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz" \
+    -O /tmp/blender.tar.xz \
+    && tar -xf /tmp/blender.tar.xz -C /opt/ \
+    && ln -s /opt/blender-4.3.2-linux-x64/blender /usr/local/bin/blender \
+    && rm /tmp/blender.tar.xz
 
 WORKDIR /app
 
