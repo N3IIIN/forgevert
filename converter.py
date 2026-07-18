@@ -1030,6 +1030,10 @@ def _blend_export(src, dst, export_fmt="GLB", **kw):
         export_cmd = f"bpy.ops.wm.usd_export(filepath=r'{dst_abs}')"
     elif ext == "abc":
         export_cmd = f"bpy.ops.wm.alembic_export(filepath=r'{dst_abs}')"
+    elif ext == "ply":
+        export_cmd = f"bpy.ops.export_mesh.ply(filepath=r'{dst_abs}')"
+    elif ext == "x3d":
+        export_cmd = f"bpy.ops.export_scene.x3d(filepath=r'{dst_abs}')"
     else:
         raise ValueError(f"Blender-Export für '{ext}' nicht implementiert")
 
@@ -1963,7 +1967,7 @@ if _IFCOS and _TRIMESH:
 # ── Blender CLI ───────────────────────────────────────────────────────────────
 if _BLENDER:
     for a in ["fbx","blend","dae","glb"]:
-        for b in ["glb","fbx","stl","obj","dae","usdz"]:
+        for b in ["glb","fbx","stl","obj","dae","usdz","ply","x3d"]:
             if a != b:
                 GRAPH[(a,b)] = _blend_export
     GRAPH[("blend","abc")] = _blend_export

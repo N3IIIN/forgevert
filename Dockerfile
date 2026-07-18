@@ -25,9 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Blender (FBX / BLEND → GLB — auskommentieren spart ~500MB) ───────────────
-# RUN apt-get update && apt-get install -y --no-install-recommends blender \
-#     && rm -rf /var/lib/apt/lists/*
+# ── Blender (BLEND / FBX → GLB / STL / OBJ / PLY / X3D) ────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends blender \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
