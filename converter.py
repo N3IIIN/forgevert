@@ -816,6 +816,58 @@ def _mesh_convert(src, dst, **kw):
     m = trimesh.load(src, force="mesh")
     m.export(dst)
 
+def _mesh_to_3mf(src, dst, **kw):
+    """Mesh → 3MF (Fusion 360 / PrusaSlicer / Bambu kompatibel)"""
+    import trimesh, zipfile
+    m = trimesh.load(src, force="mesh")
+    verts, faces = m.vertices, m.faces
+
+    # ── 3D/3dmodel.model ────────────────────────────────────────────────────
+    vert_lines = "\n      ".join(
+        f'<vertex x="{v[0]:.6f}" y="{v[1]:.6f}" z="{v[2]:.6f}"/>' for v in verts
+    )
+    tri_lines = "\n      ".join(
+        f'<triangle v1="{f[0]}" v2="{f[1]}" v3="{f[2]}"/>' for f in faces
+    )
+    model_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="en-US"
+  xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">
+  <metadata name="Application">Forgevert</metadata>
+  <metadata name="Description">Converted by forgevert.onrender.com</metadata>
+  <resources>
+    <object id="1" type="model">
+      <mesh>
+        <vertices>
+      {vert_lines}
+        </vertices>
+        <triangles>
+      {tri_lines}
+        </triangles>
+      </mesh>
+    </object>
+  </resources>
+  <build>
+    <item objectid="1"/>
+  </build>
+</model>"""
+
+    content_types = """<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+</Types>"""
+
+    rels = """<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Target="/3D/3dmodel.model" Id="rel-1"
+    Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+</Relationships>"""
+
+    with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("[Content_Types].xml", content_types)
+        zf.writestr("_rels/.rels", rels)
+        zf.writestr("3D/3dmodel.model", model_xml)
+
 def _mesh_to_amf(src, dst, **kw):
     """Mesh → AMF (Additive Manufacturing Format, XML)"""
     import trimesh
@@ -1816,6 +1868,9 @@ if _TRIMESH:
     # AMF: eigener Writer (XML-basiert)
     for _a in _MESH_FMTS:
         if _a != "amf": GRAPH[(_a,"amf")] = _mesh_to_amf
+    # 3MF: eigener Writer (ZIP-Paket, Fusion 360 kompatibel)
+    for _a in _MESH_FMTS:
+        if _a != "3mf": GRAPH[(_a,"3mf")] = _mesh_to_3mf
     # X3D: nur Export (trimesh liest X3D nicht nativ)
     for _a in _MESH_FMTS:
         GRAPH[(_a,"x3d")] = _mesh_to_x3d
