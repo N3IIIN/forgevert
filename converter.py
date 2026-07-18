@@ -1019,11 +1019,11 @@ def _blend_export(src, dst, export_fmt="GLB", **kw):
     if ext in ("glb", "gltf"):
         export_cmd = f"bpy.ops.export_scene.gltf(filepath=r'{dst_abs}', export_format='GLB')"
     elif ext == "fbx":
-        export_cmd = f"bpy.ops.export_scene.fbx(filepath=r'{dst_abs}')"
+        export_cmd = f"bpy.ops.export_scene.fbx(filepath=r'{dst_abs}', use_selection=False)"
     elif ext == "stl":
-        export_cmd = f"bpy.ops.wm.stl_export(filepath=r'{dst_abs}')"
+        export_cmd = f"bpy.ops.export_mesh.stl(filepath=r'{dst_abs}', use_selection=False)"
     elif ext == "obj":
-        export_cmd = f"bpy.ops.wm.obj_export(filepath=r'{dst_abs}')"
+        export_cmd = f"bpy.ops.export_scene.obj(filepath=r'{dst_abs}', use_selection=False)"
     elif ext == "dae":
         export_cmd = f"bpy.ops.wm.collada_export(filepath=r'{dst_abs}')"
     elif ext == "usdz":
@@ -1031,20 +1031,28 @@ def _blend_export(src, dst, export_fmt="GLB", **kw):
     elif ext == "abc":
         export_cmd = f"bpy.ops.wm.alembic_export(filepath=r'{dst_abs}')"
     elif ext == "ply":
-        export_cmd = f"bpy.ops.export_mesh.ply(filepath=r'{dst_abs}')"
+        export_cmd = f"bpy.ops.export_mesh.ply(filepath=r'{dst_abs}', use_selection=False)"
     elif ext == "x3d":
-        export_cmd = f"bpy.ops.export_scene.x3d(filepath=r'{dst_abs}')"
+        export_cmd = f"bpy.ops.export_scene.x3d(filepath=r'{dst_abs}', use_selection=False)"
     else:
         raise ValueError(f"Blender-Export für '{ext}' nicht implementiert")
 
-    script = f"import bpy\n{open_cmd}\n{export_cmd}\n"
+    script = (
+        "import bpy\n"
+        f"{open_cmd}\n"
+        "bpy.ops.object.select_all(action='SELECT')\n"
+        f"{export_cmd}\n"
+    )
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         f.write(script)
         script_path = f.name
     try:
         r = _run(["blender", "--background", "--python", script_path], timeout=600)
-        if r.returncode != 0 and not Path(dst).exists():
-            raise RuntimeError(f"Blender: {r.stderr.decode(errors='replace')[-400:]}")
+        if not Path(dst).exists():
+            raise RuntimeError(
+                f"Blender export failed (rc={r.returncode}): "
+                f"{r.stderr.decode(errors='replace')[-400:]}"
+            )
     finally:
         try: os.unlink(script_path)
         except: pass
@@ -1756,7 +1764,7 @@ _RAW_FMTS   = ["cr3","cr2","nef","nrw","arw","srf","sr2","raf","orf","rw2","dng"
 _AUDIO_FMTS = ["mp3","wav","ogg","flac","aac","opus","wma","aiff","ac3","mp2"]
 _VIDEO_FMTS = ["mp4","avi","mov","mkv","webm","flv","wmv","mpg","ts","3gp","mxf","rm"]
 _DATA_FMTS  = ["csv","tsv","json","xlsx","xls","xml","parquet","feather","orc","toml"]
-_MESH_FMTS  = ["stl","obj","ply","3mf","glb","off","dae","amf","vrml"]
+_MESH_FMTS  = ["stl","obj","ply","glb","off","dae","amf","vrml"]
 _EMBD_FMTS  = ["pes","dst","exp","jef","xxx","vp3","hus","sew","vip","csd","esd","u01","phb","phc","inb"]
 _FONT_FMTS  = ["ttf","otf","woff","woff2"]
 _GIS_FMTS   = ["geojson","kml","kmz","gpx","shp"]
@@ -1914,9 +1922,6 @@ if _TRIMESH:
     # AMF: eigener Writer (XML-basiert)
     for _a in _MESH_FMTS:
         if _a != "amf": GRAPH[(_a,"amf")] = _mesh_to_amf
-    # 3MF: eigener Writer (ZIP-Paket, Fusion 360 kompatibel)
-    for _a in _MESH_FMTS:
-        if _a != "3mf": GRAPH[(_a,"3mf")] = _mesh_to_3mf
     # X3D: nur Export (trimesh liest X3D nicht nativ)
     for _a in _MESH_FMTS:
         GRAPH[(_a,"x3d")] = _mesh_to_x3d
@@ -1925,7 +1930,7 @@ if _TRIMESH:
         if _a != "vrml": GRAPH[(_a,"vrml")] = _mesh_to_vrml
 
 if _RHINO3DM:
-    for b in ["stl","obj","ply","glb","3mf"]:
+    for b in ["stl","obj","ply","glb"]:
         GRAPH[("3dm",b)] = _rhino_to_mesh
 
 # ── CAD / BREP ────────────────────────────────────────────────────────────────
@@ -1950,7 +1955,7 @@ if _EZDXF:
     except ImportError:
         pass
     if _TRIMESH:
-        for _b in ["stl","obj","ply","glb","3mf","off"]:
+        for _b in ["stl","obj","ply","glb","off"]:
             GRAPH[("dxf",_b)] = _dxf_to_mesh
         for _a in _MESH_FMTS:
             GRAPH[(_a,"dxf")] = _mesh_to_dxf
