@@ -305,16 +305,10 @@ header {
   text-decoration: none;
 }
 .logo-mark {
-  width: 28px; height: 28px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: -0.04em;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", system-ui, sans-serif;
-  box-shadow: 0 0 16px var(--glow);
+  filter: drop-shadow(0 0 6px rgba(255,100,0,0.7));
+  flex-shrink: 0;
 }
 
 .header-actions { display: flex; align-items: center; gap: 0.5rem; }
@@ -1172,7 +1166,47 @@ kbd {
 <!-- ── Header ── -->
 <header>
   <a class="logo" href="#">
-    <div class="logo-mark">F</div>
+    <div class="logo-mark">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+        <defs>
+          <linearGradient id="fg-outer" x1="0%" y1="100%" x2="30%" y2="0%">
+            <stop offset="0%" stop-color="#C0380A"/>
+            <stop offset="45%" stop-color="#FF6B00"/>
+            <stop offset="100%" stop-color="#FFD000"/>
+          </linearGradient>
+          <linearGradient id="fg-inner" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stop-color="#FFB347"/>
+            <stop offset="100%" stop-color="#FFF4A0"/>
+          </linearGradient>
+          <radialGradient id="fg-eye" cx="40%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#FF3300"/>
+            <stop offset="100%" stop-color="#8B0000"/>
+          </radialGradient>
+        </defs>
+        <!-- Outer flame body -->
+        <path d="M16 2 C16 2 9 9 9.5 17 C9.8 21.5 12.5 26.5 16 29 C19.5 26.5 22.2 21.5 22.5 17 C23 9 16 2 16 2Z" fill="url(#fg-outer)"/>
+        <!-- Left wing-flame -->
+        <path d="M12 10 C10 12 8 16 9.5 20 C9 16 11 11 12 10Z" fill="#FF6B00" opacity="0.75"/>
+        <!-- Right wing-flame -->
+        <path d="M20 10 C22 12 24 16 22.5 20 C23 16 21 11 20 10Z" fill="#FF6B00" opacity="0.75"/>
+        <!-- Inner bright core -->
+        <path d="M16 7 C16 7 19.5 12 19 17.5 C18.6 21 17.2 24.5 16 26.5 C14.8 24.5 13.4 21 13 17.5 C12.5 12 16 7 16 7Z" fill="url(#fg-inner)" opacity="0.92"/>
+        <!-- Left eye -->
+        <ellipse cx="13.2" cy="19.5" rx="2.0" ry="1.7" fill="white"/>
+        <!-- Right eye -->
+        <ellipse cx="18.8" cy="19.5" rx="2.0" ry="1.7" fill="white"/>
+        <!-- Left pupil -->
+        <circle cx="13.6" cy="19.7" r="1.1" fill="url(#fg-eye)"/>
+        <!-- Right pupil -->
+        <circle cx="19.2" cy="19.7" r="1.1" fill="url(#fg-eye)"/>
+        <!-- Eye shine left -->
+        <circle cx="13.1" cy="19.2" r="0.42" fill="white" opacity="0.85"/>
+        <!-- Eye shine right -->
+        <circle cx="18.7" cy="19.2" r="0.42" fill="white" opacity="0.85"/>
+        <!-- Tip glow -->
+        <ellipse cx="16" cy="4" rx="2" ry="2.5" fill="#FFE066" opacity="0.55"/>
+      </svg>
+    </div>
     Forgevert
   </a>
   <nav class="header-nav">
@@ -1498,7 +1532,36 @@ kbd {
   <div class="footer-inner">
     <div class="footer-brand">
       <a class="logo" href="#" style="text-decoration:none">
-        <div class="logo-mark">F</div>
+        <div class="logo-mark">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+            <defs>
+              <linearGradient id="fg-outer2" x1="0%" y1="100%" x2="30%" y2="0%">
+                <stop offset="0%" stop-color="#C0380A"/>
+                <stop offset="45%" stop-color="#FF6B00"/>
+                <stop offset="100%" stop-color="#FFD000"/>
+              </linearGradient>
+              <linearGradient id="fg-inner2" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#FFB347"/>
+                <stop offset="100%" stop-color="#FFF4A0"/>
+              </linearGradient>
+              <radialGradient id="fg-eye2" cx="40%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="#FF3300"/>
+                <stop offset="100%" stop-color="#8B0000"/>
+              </radialGradient>
+            </defs>
+            <path d="M16 2 C16 2 9 9 9.5 17 C9.8 21.5 12.5 26.5 16 29 C19.5 26.5 22.2 21.5 22.5 17 C23 9 16 2 16 2Z" fill="url(#fg-outer2)"/>
+            <path d="M12 10 C10 12 8 16 9.5 20 C9 16 11 11 12 10Z" fill="#FF6B00" opacity="0.75"/>
+            <path d="M20 10 C22 12 24 16 22.5 20 C23 16 21 11 20 10Z" fill="#FF6B00" opacity="0.75"/>
+            <path d="M16 7 C16 7 19.5 12 19 17.5 C18.6 21 17.2 24.5 16 26.5 C14.8 24.5 13.4 21 13 17.5 C12.5 12 16 7 16 7Z" fill="url(#fg-inner2)" opacity="0.92"/>
+            <ellipse cx="13.2" cy="19.5" rx="2.0" ry="1.7" fill="white"/>
+            <ellipse cx="18.8" cy="19.5" rx="2.0" ry="1.7" fill="white"/>
+            <circle cx="13.6" cy="19.7" r="1.1" fill="url(#fg-eye2)"/>
+            <circle cx="19.2" cy="19.7" r="1.1" fill="url(#fg-eye2)"/>
+            <circle cx="13.1" cy="19.2" r="0.42" fill="white" opacity="0.85"/>
+            <circle cx="18.7" cy="19.2" r="0.42" fill="white" opacity="0.85"/>
+            <ellipse cx="16" cy="4" rx="2" ry="2.5" fill="#FFE066" opacity="0.55"/>
+          </svg>
+        </div>
         Forgevert
       </a>
       <p class="footer-tagline">Kostenloser Online File Converter · 150+ Formate</p>
