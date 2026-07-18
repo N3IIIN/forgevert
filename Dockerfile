@@ -25,17 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Blender: neueste stabile Version (immer aktuell, damit .blend-Dateien gelesen werden) ──
-# Extra-Libs die Blender headless braucht
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libxrender1 libxi6 libxxf86vm1 libxfixes3 xz-utils \
-    && rm -rf /var/lib/apt/lists/*
-COPY fetch_blender.py /tmp/fetch_blender.py
-RUN python3 /tmp/fetch_blender.py \
-    && tar -xf /tmp/blender.tar.xz -C /opt/ \
-    && BDIR=$(ls -dt /opt/blender-*-linux-x64 | head -1) \
-    && ln -sf "$BDIR/blender" /usr/local/bin/blender \
-    && rm /tmp/blender.tar.xz /tmp/fetch_blender.py
+# Blender entfernt — .blend ist selten, Blender-Download ist im Build-Netz unzuverlässig.
+# STL/OBJ/GLB/PLY/DAE/FBX laufen weiter über trimesh.
 
 WORKDIR /app
 

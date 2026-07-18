@@ -14,7 +14,7 @@
   Bild converter, JPG PNG WEBP HEIC AVIF TIFF BMP GIF SVG konvertieren, HEIC zu JPG, WEBP zu JPG,
   Video converter, MP4 AVI MOV MKV WEBM konvertieren, MP4 zu MP3, MOV zu MP4,
   Audio converter, MP3 WAV FLAC AAC OGG M4A konvertieren, MP3 zu WAV, FLAC zu MP3,
-  3D converter, STL OBJ GLB FBX DAE PLY BLEND konvertieren, STL zu OBJ, OBJ zu STL, BLEND zu STL,
+  3D converter, STL OBJ GLB FBX DAE PLY konvertieren, STL zu OBJ, OBJ zu STL, FBX zu GLB,
   CAD converter, DXF DWG STEP IGES converter, DXF zu PDF, DXF zu PNG,
   Dokument converter, DOCX XLSX PPTX ODT Markdown EPUB TXT HTML konvertieren,
   GIS converter, GeoJSON Shapefile KML GPX konvertieren,
@@ -1650,7 +1650,7 @@ const CATS = [
   { key:"video",  label:"Video",           color:"var(--c-video)", fmts:["mp4","avi","mov","mkv","webm","flv","wmv","mpg","ts","3gp","mxf","rm"] },
   { key:"data",   label:"Tabellen / Daten",color:"var(--c-data)",  fmts:["csv","tsv","json","xlsx","xls","xml","parquet","feather","orc","sqlite","db","html","txt","yaml","toml","h5","hdf5","nc"] },
   { key:"doc",    label:"Dokumente",       color:"var(--c-doc)",   fmts:["pdf","docx","doc","odt","rtf","pptx","ppt","odp","epub","fb2","ipynb","markdown","latex","rst","vsdx","msg","eml"] },
-  { key:"3d",     label:"3D / BIM / CAD",  color:"var(--c-3d)",    fmts:["dwg","dxf","stl","obj","ply","3mf","glb","off","dae","abc","step","brep","iges","svg","ifc","ifczip","3dm","fbx","blend","usdz"] },
+  { key:"3d",     label:"3D / BIM / CAD",  color:"var(--c-3d)",    fmts:["dwg","dxf","stl","obj","ply","glb","off","dae","abc","step","brep","iges","svg","ifc","ifczip","3dm","fbx","usdz"] },
   { key:"embd",   label:"Stickerei",       color:"var(--c-embd)",  fmts:["pes","dst","exp","jef","xxx","vp3","hus","sew","vip","csd","esd","u01","phb","phc","inb"] },
   { key:"gis",    label:"GIS / Geo",       color:"var(--c-gis)",   fmts:["geojson","kml","kmz","gpx","shp"] },
   { key:"font",   label:"Schriften",       color:"var(--c-font)",  fmts:["ttf","otf","woff","woff2"] },
@@ -1738,7 +1738,7 @@ function setHTML(id, v) { document.getElementById(id).innerHTML = v; }
     'XLSX','GLB','FLAC','OGG','PES','DST','MIDI','TTF','WOFF2','GeoJSON',
     'GPX','KML','SHP','DCM','LAS','GCODE','EPUB','IPYNB','3DM','IFC',
     'NEF','CR3','ARW','DNG','HEIC','AVIF','OTF','VP3','JEF','RAW',
-    'STEP','BREP','DXF','FBX','BLEND','OBJ','PLY','7Z','ZIP','PPTX',
+    'STEP','BREP','DXF','FBX','OBJ','PLY','7Z','ZIP','PPTX',
   ];
   const cloud = document.getElementById('fmt-cloud');
   all.forEach((fmt, i) => {
