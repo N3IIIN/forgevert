@@ -353,6 +353,10 @@ async def api_batch(
     """Mehrere Dateien auf einmal konvertieren → ZIP-Download"""
     if len(files) > 50:
         raise HTTPException(400, "Maximal 50 Dateien pro Batch")
+    total_limit = MAX_MB * 1024 * 1024 * 10  # 10× MAX_MB als Gesamt-Limit
+    total_size = sum(f.size for f in files if f.size)
+    if total_size > total_limit:
+        raise HTTPException(400, f"Gesamtgröße überschreitet {MAX_MB * 10} MB")
 
     zip_buf = io.BytesIO()
     log = []

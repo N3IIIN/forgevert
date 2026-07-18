@@ -1638,7 +1638,7 @@ let batchFiles  = [];
 
 const EMBD_FMTS  = new Set(["pes","dst","exp","jef","xxx","vp3","hus","sew","vip","csd","esd","u01","phb","phc","inb"]);
 const GCODE_FMTS = new Set(["gcode","nc","cnc","tap","ngc","mpf"]);
-const MESH_FMTS  = new Set(["stl","obj","glb","ply","3mf","off","dae"]);
+const MESH_FMTS  = new Set(["stl","obj","glb","ply","off","dae"]);
 
 // ══════════════════════════════════════════════════════════════════════════
 // Category system
@@ -1650,11 +1650,11 @@ const CATS = [
   { key:"video",  label:"Video",           color:"var(--c-video)", fmts:["mp4","avi","mov","mkv","webm","flv","wmv","mpg","ts","3gp","mxf","rm"] },
   { key:"data",   label:"Tabellen / Daten",color:"var(--c-data)",  fmts:["csv","tsv","json","xlsx","xls","xml","parquet","feather","orc","sqlite","db","html","txt","yaml","toml","h5","hdf5","nc"] },
   { key:"doc",    label:"Dokumente",       color:"var(--c-doc)",   fmts:["pdf","docx","doc","odt","rtf","pptx","ppt","odp","epub","fb2","ipynb","markdown","latex","rst","vsdx","msg","eml"] },
-  { key:"3d",     label:"3D / BIM / CAD",  color:"var(--c-3d)",    fmts:["dwg","dxf","stl","obj","ply","glb","off","dae","abc","step","brep","iges","svg","ifc","ifczip","3dm","fbx","usdz"] },
+  { key:"3d",     label:"3D / BIM / CAD",  color:"var(--c-3d)",    fmts:["dxf","stl","obj","ply","glb","off","dae","step","brep","iges","svg","ifc","ifczip","3dm","x3d","vrml","amf"] },
   { key:"embd",   label:"Stickerei",       color:"var(--c-embd)",  fmts:["pes","dst","exp","jef","xxx","vp3","hus","sew","vip","csd","esd","u01","phb","phc","inb"] },
   { key:"gis",    label:"GIS / Geo",       color:"var(--c-gis)",   fmts:["geojson","kml","kmz","gpx","shp"] },
   { key:"font",   label:"Schriften",       color:"var(--c-font)",  fmts:["ttf","otf","woff","woff2"] },
-  { key:"med",    label:"Medizin / LiDAR", color:"var(--c-med)",   fmts:["dcm","nii","las","laz"] },
+  { key:"med",    label:"Medizin / LiDAR", color:"var(--c-med)",   fmts:["dcm","las","laz"] },
   { key:"pcb",    label:"PCB / G-Code",    color:"var(--c-pcb)",   fmts:["gbr","gtl","gbl","gts","gbs","gko","ger","gcode","nc","cnc","tap","ngc","mpf"] },
   { key:"arch",   label:"Archive",         color:"var(--c-arch)",  fmts:["zip","7z","rar","tar","tar_gz","tar_bz2"] },
   { key:"pim",    label:"Kontakte / Kalender", color:"var(--c-pim)", fmts:["vcf","ics"] },
@@ -2020,7 +2020,7 @@ async function loadEmbroideryPreview(file) {
 // ══════════════════════════════════════════════════════════════════════════
 // Quality Panel
 // ══════════════════════════════════════════════════════════════════════════
-const QUALITY_FMTS = new Set(['jpeg','jpg','webp','png']);
+const QUALITY_FMTS = new Set(['jpeg','webp','png']);
 
 function selectTarget(fmt) {
   const qp = document.getElementById('quality-panel');
@@ -2485,7 +2485,7 @@ function showResult(data, targetFmt) {
 
   // Preview
   const preview = document.getElementById('result-preview');
-  if (['jpeg','jpg','png','gif','webp','bmp','tiff','ico'].includes(targetFmt)) {
+  if (['jpeg','png','gif','webp','bmp','tiff','ico'].includes(targetFmt)) {
     preview.innerHTML = `<img src="${url}" alt="Vorschau">`;
   } else if (targetFmt === 'svg') {
     const svgText = new TextDecoder().decode(bytes);

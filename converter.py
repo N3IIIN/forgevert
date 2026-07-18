@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Universal File Converter — Konvertierungs-Engine
-~300+ Formate, BFS-Pfadsuche, externe Prozesse (ffmpeg, Blender, LibreOffice, Pandoc)
+~300+ Formate, BFS-Pfadsuche, externe Prozesse (ffmpeg, Pandoc)
 """
 import os, sys, base64, tempfile, shutil, subprocess, json
 from pathlib import Path
@@ -37,22 +37,16 @@ _GPXPY      = _try_import("gpxpy")
 _FASTKML    = _try_import("fastkml")
 _LASPY      = _try_import("laspy")
 _PYDICOM    = _try_import("pydicom")
-_NIBABEL    = _try_import("nibabel")
 _RAWPY      = _try_import("rawpy")
 _PILHEIF    = _try_import("pillow_heif")
-_GERBER     = _try_import("gerber")
 _PY7ZR      = _try_import("py7zr")
 _RARFILE    = _try_import("rarfile")
 _VSDX       = _try_import("vsdx")
 _EXTRACTMSG = _try_import("extract_msg")
 _PYMUPDF    = _try_import("fitz")
-_REMBG      = _try_import("rembg")
 _XLWT       = _try_import("xlwt")
 _FIONA      = _try_import("fiona")
-_MUSIC21    = _try_import("music21")
-_H5PY       = _try_import("h5py")
-_NETCDF4    = _try_import("netCDF4")
-_RDKIT      = _try_import("rdkit")
+_WEASYPRINT = _try_import("weasyprint")
 _YAML       = _try_import("yaml")
 _ICALENDAR  = _try_import("icalendar")
 _QRCODE     = _try_import("qrcode")
@@ -107,6 +101,8 @@ _SOFFICE = _find_soffice()
 
 def _find_lo_python():
     """Python mit UNO-Modul finden (Windows: LibreOffice-Bundle, Linux: python3-uno)"""
+    if not _SOFFICE:
+        return None  # kein LibreOffice → kein UNO-Python nötig
     import platform
     if platform.system() == "Windows":
         for p in [
@@ -116,7 +112,6 @@ def _find_lo_python():
             if Path(p).exists():
                 return p
         return None
-    # Linux/Docker: system python3 mit python3-uno prüfen
     for p in ["/usr/bin/python3", "/usr/local/bin/python3"]:
         if Path(p).exists():
             try:
@@ -427,6 +422,7 @@ def _txt_to_docx(src, dst, **kw):
 
 def _docx_to_pdf_native(src, dst, **kw):
     """python-docx + reportlab fallback (kein LibreOffice/LaTeX nötig)."""
+    import html as _html_mod
     import docx
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet
@@ -450,7 +446,6 @@ def _docx_to_pdf_native(src, dst, **kw):
             lvl = p.style.name.split()[-1]
             if lvl.isdigit() and 1 <= int(lvl) <= 3:
                 style_name = f"Heading{lvl}"
-        import html as _html_mod
         safe = _html_mod.escape(text)
         if p.style and "Bold" in (p.style.name or ""):
             safe = f"<b>{safe}</b>"
@@ -601,15 +596,18 @@ def _pptx_to_txt(src, dst, **kw):
     Path(dst).write_text("\n".join(lines), encoding="utf-8")
 
 def _pptx_to_pdf(src, dst, **kw):
-    if _SOFFICE: _libreoffice(src, dst); return
-    # Pure-Python-Fallback: PPTX → HTML → PDF
-    html_tmp = src + "_pptx_tmp.html"
-    try:
-        _pptx_to_html(src, html_tmp)
-        _html_to_pdf(html_tmp, dst)
-    finally:
-        try: os.unlink(html_tmp)
-        except: pass
+    if _SOFFICE:
+        _libreoffice(src, dst); return
+    if _WEASYPRINT:
+        html_tmp = src + "_pptx_tmp.html"
+        try:
+            _pptx_to_html(src, html_tmp)
+            _html_to_pdf(html_tmp, dst)
+        finally:
+            try: os.unlink(html_tmp)
+            except: pass
+        return
+    raise RuntimeError("PPTX→PDF benötigt LibreOffice oder weasyprint (nicht installiert)")
 
 # ══════════ TABELLEN / DATEN ══════════
 
@@ -1837,7 +1835,8 @@ if _PDF2DOCX:
     GRAPH[("pdf","docx")] = _pdf_to_docx
 
 if _PPTX:
-    GRAPH[("pptx","pdf")]  = _pptx_to_pdf
+    if _SOFFICE or _WEASYPRINT:
+        GRAPH[("pptx","pdf")] = _pptx_to_pdf
     GRAPH[("pptx","html")] = _pptx_to_html
     GRAPH[("pptx","txt")]  = _pptx_to_txt
 
@@ -1855,12 +1854,16 @@ if _SOFFICE:
     GRAPH[("xlsx","ods")]  = _libreoffice
     GRAPH[("ods","xlsx")]  = _libreoffice
 
+_LATEX = bool(_has_cmd("pdflatex", "xelatex", "lualatex"))
+
 if _PANDOC:
+    _PDF_TARGETS = ["pdf"] if _LATEX else []
     for a in ["markdown","rst","html","docx","epub","latex"]:
-        for b in ["markdown","html","pdf","docx","epub","latex","txt"]:
+        for b in ["markdown","html","docx","epub","latex","txt"] + _PDF_TARGETS:
             if a != b: GRAPH[(a,b)] = _pandoc
     GRAPH[("rst","html")] = _pandoc
-    GRAPH[("latex","pdf")] = _pandoc
+    if _LATEX:
+        GRAPH[("latex","pdf")] = _pandoc
 
 # Native fallback: pandoc→pdf needs LaTeX which is not installed on the server.
 # Override docx→pdf with the python-docx + reportlab converter when LibreOffice
@@ -1897,8 +1900,14 @@ if _FFMPEG:
         GRAPH[("mid","json")]  = _midi_to_json
         try:
             _run(["fluidsynth", "--version"], timeout=3)
-            GRAPH[("midi","wav")] = _midi_to_wav
-            GRAPH[("mid","wav")]  = _midi_to_wav
+            _SF2_PATHS = [
+                "/usr/share/sounds/sf2/FluidR3_GM.sf2",
+                "/usr/share/sounds/sf2/default.sf2",
+                "/usr/share/soundfonts/FluidR3_GM.sf2",
+            ]
+            if any(Path(p).exists() for p in _SF2_PATHS):
+                GRAPH[("midi","wav")] = _midi_to_wav
+                GRAPH[("mid","wav")]  = _midi_to_wav
         except Exception: pass
 
 # ── Video ─────────────────────────────────────────────────────────────────────
@@ -2345,7 +2354,15 @@ GRAPH[("toml","json")] = _toml_to_json
 GRAPH[("json","toml")] = _json_to_toml
 if _YAML:
     GRAPH[("toml","yaml")] = _toml_to_yaml
-    GRAPH[("yaml","toml")] = lambda s,o,**k: (_yaml_to_json(s,s+"_tmp.json") or _json_to_toml(s+"_tmp.json",o))
+    def _yaml_to_toml(src, dst, **kw):
+        tmp = src + "_tmp.json"
+        try:
+            _yaml_to_json(src, tmp)
+            _json_to_toml(tmp, dst, **kw)
+        finally:
+            try: os.unlink(tmp)
+            except OSError: pass
+    GRAPH[("yaml","toml")] = _yaml_to_toml
 
 # ══════════ SVG → PDF ══════════
 
