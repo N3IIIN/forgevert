@@ -413,6 +413,23 @@ def get_machines():
     return conv.MACHINE_DB
 
 
+# ── SEO-Dateien explizit routen (vor dem StaticFiles-Mount) ──────────────────
+from fastapi.responses import PlainTextResponse, FileResponse, Response
+
+@app.get("/robots.txt", include_in_schema=False)
+def robots_txt():
+    content = (_static / "robots.txt").read_text(encoding="utf-8") if (_static / "robots.txt").exists() else "User-agent: *\nAllow: /\n"
+    return PlainTextResponse(content)
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap_xml():
+    content = (_static / "sitemap.xml").read_text(encoding="utf-8") if (_static / "sitemap.xml").exists() else ""
+    return Response(content, media_type="application/xml")
+
+@app.get("/google23d8b4fd8017a741.html", include_in_schema=False)
+def google_verify():
+    return PlainTextResponse("google-site-verification: google23d8b4fd8017a741.html")
+
 # ── Statisches Frontend ───────────────────────────────────────────────────────
 _static = Path(__file__).parent / "static"
 if _static.exists():
