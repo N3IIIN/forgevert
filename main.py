@@ -98,6 +98,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_static = Path(__file__).parent / "static"
 
 @app.get("/api/health")
 def health():
@@ -431,7 +432,6 @@ def google_verify():
     return PlainTextResponse("google-site-verification: google23d8b4fd8017a741.html")
 
 # ── Statisches Frontend ───────────────────────────────────────────────────────
-_static = Path(__file__).parent / "static"
 if _static.exists():
     app.mount("/", StaticFiles(directory=str(_static), html=True), name="static")
 
