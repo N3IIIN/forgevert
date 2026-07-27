@@ -113,6 +113,7 @@ def health():
         "pandas": conv._PANDAS,
         "embroidery": conv._PYEMB,
         "rembg": conv._REMBG,
+        "version": "d08c181",
     }
 
 
