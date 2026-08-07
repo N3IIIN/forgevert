@@ -351,15 +351,23 @@ def _img_to_svg_traced(src, dst, **kw):
     import vtracer
     from PIL import Image
 
-    # vtracer dekodiert zuverlaessig PNG/JPEG selbst - fuer alle anderen
-    # Rasterformate (TGA, PCX, PPM, ICO, ...) vorher ueber Pillow nach PNG
-    # normalisieren, damit die Vektorisierung trotzdem funktioniert.
-    src_ext = Path(src).suffix.lower()
-    if src_ext not in (".png", ".jpg", ".jpeg"):
-        vtracer_input = str(Path(dst).with_suffix(".src.png"))
-        Image.open(src).convert("RGBA").save(vtracer_input)
-    else:
-        vtracer_input = src
+    # Alle Rasterformate ueber Pillow vorbereiten (normalisiert nebenbei TGA,
+    # PCX, PPM, ICO, ... nach PNG, was vtracer nicht direkt dekodiert).
+    #
+    # Wichtig: der Alpha-Kanal wird hart auf 0/255 geschwellt. Weiche/
+    # antialiaste Kanten gegen Transparenz (z.B. Icons, Cookie-Cutter-Umrisse,
+    # Logos) hinterlassen sonst einen schmalen Streifen aus vielen leicht
+    # unterschiedlichen Alpha-Werten - vtracer behandelt jeden davon als
+    # eigene Farbschicht und zeichnet ihn separat nach, was als gezackte
+    # doppelte/dreifache Konturlinie sichtbar wird (empirisch reproduziert
+    # und verifiziert: ohne Schwellwert 164 Pfade fuer einen einzelnen Kreis,
+    # mit Schwellwert 2 saubere Pfade).
+    img = Image.open(src).convert("RGBA")
+    r, g, b, a = img.split()
+    a = a.point(lambda p: 255 if p >= 128 else 0)
+    img = Image.merge("RGBA", (r, g, b, a))
+    vtracer_input = str(Path(dst).with_suffix(".src.png"))
+    img.save(vtracer_input)
 
     vtracer.convert_image_to_svg_py(
         vtracer_input,
