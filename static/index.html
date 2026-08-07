@@ -234,12 +234,38 @@ body::after {
   margin-bottom: 1.5rem;
   text-align: center;
 }
+.popular-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+.pop-tab {
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted-hi);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.4em 1em;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.pop-tab:hover { color: var(--accent-hi); }
+.pop-tab.active {
+  color: var(--accent-hi);
+  background: rgba(124,58,237,0.1);
+  border-color: var(--accent);
+}
 .popular-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: center;
 }
+.pop-link.is-hidden { display: none; }
 .pop-link {
   font-size: 0.82rem;
   font-weight: 600;
@@ -1516,27 +1542,37 @@ kbd {
 <section class="popular-section">
   <div class="popular-inner">
     <h2 class="section-title">Beliebte Konvertierungen</h2>
-    <div class="popular-grid">
-      <a class="pop-link" href="#" onclick="quickConvert('pdf','docx')">PDF → Word</a>
-      <a class="pop-link" href="#" onclick="quickConvert('pdf','jpg')">PDF → JPG</a>
-      <a class="pop-link" href="#" onclick="quickConvert('jpg','pdf')">JPG → PDF</a>
-      <a class="pop-link" href="#" onclick="quickConvert('png','jpg')">PNG → JPG</a>
-      <a class="pop-link" href="#" onclick="quickConvert('jpg','png')">JPG → PNG</a>
-      <a class="pop-link" href="#" onclick="quickConvert('mp4','mp3')">MP4 → MP3</a>
-      <a class="pop-link" href="#" onclick="quickConvert('mp3','wav')">MP3 → WAV</a>
-      <a class="pop-link" href="#" onclick="quickConvert('docx','pdf')">Word → PDF</a>
-      <a class="pop-link" href="#" onclick="quickConvert('heic','jpg')">HEIC → JPG</a>
-      <a class="pop-link" href="#" onclick="quickConvert('svg','png')">SVG → PNG</a>
-      <a class="pop-link" href="#" onclick="quickConvert('webp','jpg')">WEBP → JPG</a>
-      <a class="pop-link" href="#" onclick="quickConvert('obj','stl')">OBJ → STL</a>
-      <a class="pop-link" href="#" onclick="quickConvert('csv','xlsx')">CSV → Excel</a>
-      <a class="pop-link" href="#" onclick="quickConvert('xlsx','csv')">Excel → CSV</a>
-      <a class="pop-link" href="#" onclick="quickConvert('mov','mp4')">MOV → MP4</a>
-      <a class="pop-link" href="#" onclick="quickConvert('avi','mp4')">AVI → MP4</a>
-      <a class="pop-link" href="#" onclick="quickConvert('pes','dst')">PES → DST</a>
-      <a class="pop-link" href="#" onclick="quickConvert('dst','pes')">DST → PES</a>
-      <a class="pop-link" href="#" onclick="quickConvert('pes','jef')">PES → JEF</a>
-      <a class="pop-link" href="#" onclick="quickConvert('dst','jef')">DST → JEF</a>
+    <div class="popular-tabs" id="popular-tabs" role="tablist">
+      <button class="pop-tab active" data-cat="alle" role="tab" aria-selected="true">Alle</button>
+      <button class="pop-tab" data-cat="bilder" role="tab" aria-selected="false">Bilder</button>
+      <button class="pop-tab" data-cat="dokumente" role="tab" aria-selected="false">Dokumente</button>
+      <button class="pop-tab" data-cat="video-audio" role="tab" aria-selected="false">Video &amp; Audio</button>
+      <button class="pop-tab" data-cat="3d" role="tab" aria-selected="false">3D</button>
+      <button class="pop-tab" data-cat="stickerei" role="tab" aria-selected="false">Stickerei</button>
+    </div>
+    <div class="popular-grid" id="popular-grid">
+      <a class="pop-link" data-cat="dokumente" href="#" onclick="quickConvert('pdf','docx')">PDF → Word</a>
+      <a class="pop-link" data-cat="bilder" href="#" onclick="quickConvert('pdf','jpg')">PDF → JPG</a>
+      <a class="pop-link" data-cat="bilder" href="#" onclick="quickConvert('jpg','pdf')">JPG → PDF</a>
+      <a class="pop-link" data-cat="bilder" href="#" onclick="quickConvert('png','jpg')">PNG → JPG</a>
+      <a class="pop-link" data-cat="bilder" href="#" onclick="quickConvert('jpg','png')">JPG → PNG</a>
+      <a class="pop-link" data-cat="video-audio" href="#" onclick="quickConvert('mp4','mp3')">MP4 → MP3</a>
+      <a class="pop-link" data-cat="video-audio" href="#" onclick="quickConvert('mp3','wav')">MP3 → WAV</a>
+      <a class="pop-link" data-cat="dokumente" href="#" onclick="quickConvert('docx','pdf')">Word → PDF</a>
+      <a class="pop-link" data-cat="bilder" href="#" onclick="quickConvert('heic','jpg')">HEIC → JPG</a>
+      <a class="pop-link" data-cat="bilder" href="#" onclick="quickConvert('svg','png')">SVG → PNG</a>
+      <a class="pop-link" data-cat="bilder" href="#" onclick="quickConvert('png','svg')">PNG → SVG</a>
+      <a class="pop-link" data-cat="bilder" href="#" onclick="quickConvert('jpg','svg')">JPG → SVG</a>
+      <a class="pop-link" data-cat="bilder" href="#" onclick="quickConvert('webp','jpg')">WEBP → JPG</a>
+      <a class="pop-link" data-cat="3d" href="#" onclick="quickConvert('obj','stl')">OBJ → STL</a>
+      <a class="pop-link" data-cat="dokumente" href="#" onclick="quickConvert('csv','xlsx')">CSV → Excel</a>
+      <a class="pop-link" data-cat="dokumente" href="#" onclick="quickConvert('xlsx','csv')">Excel → CSV</a>
+      <a class="pop-link" data-cat="video-audio" href="#" onclick="quickConvert('mov','mp4')">MOV → MP4</a>
+      <a class="pop-link" data-cat="video-audio" href="#" onclick="quickConvert('avi','mp4')">AVI → MP4</a>
+      <a class="pop-link" data-cat="stickerei" href="#" onclick="quickConvert('pes','dst')">PES → DST</a>
+      <a class="pop-link" data-cat="stickerei" href="#" onclick="quickConvert('dst','pes')">DST → PES</a>
+      <a class="pop-link" data-cat="stickerei" href="#" onclick="quickConvert('pes','jef')">PES → JEF</a>
+      <a class="pop-link" data-cat="stickerei" href="#" onclick="quickConvert('dst','jef')">DST → JEF</a>
     </div>
   </div>
 </section>
@@ -2643,6 +2679,24 @@ function scrollToFmt(cat) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   return false;
 }
+
+// Popular-conversions tabs: filter pills by category
+(function initPopularTabs() {
+  const tabs = document.getElementById('popular-tabs');
+  const grid = document.getElementById('popular-grid');
+  if (!tabs || !grid) return;
+  const links = grid.querySelectorAll('.pop-link');
+  tabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.pop-tab');
+    if (!btn) return;
+    tabs.querySelectorAll('.pop-tab').forEach(t => {
+      t.classList.toggle('active', t === btn);
+      t.setAttribute('aria-selected', t === btn ? 'true' : 'false');
+    });
+    const cat = btn.dataset.cat;
+    links.forEach(a => a.classList.toggle('is-hidden', cat !== 'alle' && a.dataset.cat !== cat));
+  });
+})();
 </script>
 </body>
 </html>
