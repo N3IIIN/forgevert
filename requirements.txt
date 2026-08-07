@@ -73,6 +73,7 @@ rarfile>=4.2               # RAR (benötigt unrar im System)
 # ── Vektorgrafik ───────────────────────────────────────────────────────────────
 cairosvg>=2.7              # SVG → PNG (Fallback ohne Inkscape)
 matplotlib>=3.8            # DXF → PNG/PDF Rendering (ezdxf MatplotlibBackend)
+vtracer>=0.6.11             # PNG/JPEG/... → SVG (Vektorisierung/Nachzeichnen, Rust-Kern)
 
 # ── Outlook / E-Mail ───────────────────────────────────────────────────────────
 extract-msg>=0.48          # MSG-Dateien (Outlook)

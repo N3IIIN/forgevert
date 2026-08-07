@@ -43,6 +43,7 @@ _PY7ZR      = _try_import("py7zr")
 _RARFILE    = _try_import("rarfile")
 _GERBER     = _try_import("gerber")
 _REMBG      = _try_import("rembg")
+_VTRACER    = _try_import("vtracer")
 _H5PY       = _try_import("h5py")
 _VSDX       = _try_import("vsdx")
 _EXTRACTMSG = _try_import("extract_msg")
@@ -330,6 +331,51 @@ def _svg_to_png(src, dst, **kw):
         cairosvg.svg2png(url=src, write_to=dst)
     except ImportError:
         raise RuntimeError("SVG→PNG: pip install cairosvg  oder  inkscape installieren")
+
+def _img_to_svg_traced(src, dst, **kw):
+    """Bild (Raster: PNG/JPEG/...) → SVG durch Vektorisierung/Nachzeichnen
+    (vtracer). Kein simples Umbenennen: das Bild wird zuerst nach Farbe in
+    Regionen segmentiert, deren Kanten dann als geglaettete Kurven
+    (Bezier-Splines) nachgezogen - Ergebnisgroesse/-dauer haengt stark von
+    Bildkomplexitaet und den Parametern unten ab.
+
+    Optionale kw-Parameter (vtracer-Standardwerte als Fallback):
+      colormode: "color" (Default) oder "binary" (nur 1 Farbe - schneller,
+                 sauberer fuer Logos/Strichzeichnungen, ungeeignet fuer Fotos)
+      mode: "spline" (Default, glatte Kurven), "polygon" (gerade Kanten,
+            oft besser fuer Pixel-Art) oder "none" (nur Eckpunkte)
+      hierarchical, filter_speckle, color_precision, layer_difference,
+      corner_threshold, length_threshold, max_iterations, splice_threshold,
+      path_precision: siehe https://github.com/visioncortex/vtracer
+    """
+    import vtracer
+    from PIL import Image
+
+    # vtracer dekodiert zuverlaessig PNG/JPEG selbst - fuer alle anderen
+    # Rasterformate (TGA, PCX, PPM, ICO, ...) vorher ueber Pillow nach PNG
+    # normalisieren, damit die Vektorisierung trotzdem funktioniert.
+    src_ext = Path(src).suffix.lower()
+    if src_ext not in (".png", ".jpg", ".jpeg"):
+        vtracer_input = str(Path(dst).with_suffix(".src.png"))
+        Image.open(src).convert("RGBA").save(vtracer_input)
+    else:
+        vtracer_input = src
+
+    vtracer.convert_image_to_svg_py(
+        vtracer_input,
+        dst,
+        colormode=kw.get("colormode", "color"),
+        hierarchical=kw.get("hierarchical", "stacked"),
+        mode=kw.get("mode", "spline"),
+        filter_speckle=int(kw.get("filter_speckle", 4)),
+        color_precision=int(kw.get("color_precision", 6)),
+        layer_difference=int(kw.get("layer_difference", 16)),
+        corner_threshold=int(kw.get("corner_threshold", 60)),
+        length_threshold=float(kw.get("length_threshold", 4.0)),
+        max_iterations=int(kw.get("max_iterations", 10)),
+        splice_threshold=int(kw.get("splice_threshold", 45)),
+        path_precision=int(kw.get("path_precision", 8)),
+    )
 
 def _psd_to_png(src, dst, **kw):
     """PSD/PSB → PNG via psd-tools"""
@@ -1796,6 +1842,10 @@ if _RAWPY:
 if _GHOSTSCR:
     GRAPH[("eps","png")] = _eps_to_png
     GRAPH[("eps","jpeg")] = _eps_to_png
+
+if _PIL and _VTRACER:
+    for a in _IMG_FMTS:
+        GRAPH[(a,"svg")] = _img_to_svg_traced
 
 GRAPH[("svg","png")] = _svg_to_png
 

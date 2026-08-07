@@ -113,6 +113,7 @@ def health():
         "pandas": conv._PANDAS,
         "embroidery": conv._PYEMB,
         "rembg": conv._REMBG,
+        "vtracer": conv._VTRACER,
         "version": "d08c181",
     }
 
@@ -135,6 +136,8 @@ async def api_convert(
     quality: Optional[int] = Form(None),
     resize_w: Optional[int] = Form(None),
     resize_h: Optional[int] = Form(None),
+    svg_colormode: Optional[str] = Form(None),  # "color" (Default) oder "binary" - fuer PNG/JPEG → SVG
+    svg_mode: Optional[str] = Form(None),       # "spline" (Default), "polygon" oder "none" - fuer PNG/JPEG → SVG
 ):
     data = await file.read()
     if len(data) > MAX_MB * 1024 * 1024:
@@ -143,7 +146,10 @@ async def api_convert(
     filename = file.filename or "upload"
     suffix = Path(filename).suffix or ".bin"
     fd, tmp_path = tempfile.mkstemp(suffix=suffix)
-    kw = {k: v for k, v in {"quality": quality, "resize_w": resize_w, "resize_h": resize_h}.items() if v is not None}
+    kw = {k: v for k, v in {
+        "quality": quality, "resize_w": resize_w, "resize_h": resize_h,
+        "colormode": svg_colormode, "mode": svg_mode,
+    }.items() if v is not None}
     src_ext = Path(filename).suffix.lstrip(".").lower() or "bin"
     try:
         with os.fdopen(fd, "wb") as f:
@@ -167,6 +173,8 @@ async def api_convert_url(
     quality: Optional[int] = Form(None),
     resize_w: Optional[int] = Form(None),
     resize_h: Optional[int] = Form(None),
+    svg_colormode: Optional[str] = Form(None),
+    svg_mode: Optional[str] = Form(None),
 ):
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme not in ("http", "https"):
@@ -185,7 +193,10 @@ async def api_convert_url(
     filename = Path(parsed.path).name or "download"
     suffix = Path(filename).suffix or ".bin"
     fd, tmp_path = tempfile.mkstemp(suffix=suffix)
-    kw = {k: v for k, v in {"quality": quality, "resize_w": resize_w, "resize_h": resize_h}.items() if v is not None}
+    kw = {k: v for k, v in {
+        "quality": quality, "resize_w": resize_w, "resize_h": resize_h,
+        "colormode": svg_colormode, "mode": svg_mode,
+    }.items() if v is not None}
     src_ext = Path(filename).suffix.lstrip(".").lower() or "bin"
     try:
         with os.fdopen(fd, "wb") as f:
