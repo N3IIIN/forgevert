@@ -138,6 +138,7 @@ async def api_convert(
     resize_h: Optional[int] = Form(None),
     svg_colormode: Optional[str] = Form(None),  # "color" (Default) oder "binary" - fuer PNG/JPEG → SVG
     svg_mode: Optional[str] = Form(None),       # "spline" (Default), "polygon" oder "none" - fuer PNG/JPEG → SVG
+    svg_thicken_px: Optional[int] = Form(None), # Linien um N Pixel verdicken - fuer PNG/JPEG → SVG
 ):
     data = await file.read()
     if len(data) > MAX_MB * 1024 * 1024:
@@ -148,7 +149,7 @@ async def api_convert(
     fd, tmp_path = tempfile.mkstemp(suffix=suffix)
     kw = {k: v for k, v in {
         "quality": quality, "resize_w": resize_w, "resize_h": resize_h,
-        "colormode": svg_colormode, "mode": svg_mode,
+        "colormode": svg_colormode, "mode": svg_mode, "thicken_px": svg_thicken_px,
     }.items() if v is not None}
     src_ext = Path(filename).suffix.lstrip(".").lower() or "bin"
     try:
@@ -175,6 +176,7 @@ async def api_convert_url(
     resize_h: Optional[int] = Form(None),
     svg_colormode: Optional[str] = Form(None),
     svg_mode: Optional[str] = Form(None),
+    svg_thicken_px: Optional[int] = Form(None),
 ):
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme not in ("http", "https"):
@@ -195,7 +197,7 @@ async def api_convert_url(
     fd, tmp_path = tempfile.mkstemp(suffix=suffix)
     kw = {k: v for k, v in {
         "quality": quality, "resize_w": resize_w, "resize_h": resize_h,
-        "colormode": svg_colormode, "mode": svg_mode,
+        "colormode": svg_colormode, "mode": svg_mode, "thicken_px": svg_thicken_px,
     }.items() if v is not None}
     src_ext = Path(filename).suffix.lstrip(".").lower() or "bin"
     try:

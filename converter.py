@@ -369,6 +369,27 @@ def _looks_like_lineart(img):
     return dark >= 20
 
 
+def _thicken_lineart(img, px):
+    """Verdickt dunkle Tinte um `px` Pixel (morphologische Dilation), damit
+    duenne Strichzeichnungen als kraeftige, klar lesbare Linien nachgezeichnet
+    werden statt als Haarlinien. Faerbt nur die neu hinzukommenden Rand-Pixel
+    schwarz ein - der urspruengliche Hintergrund (transparent oder opak weiss)
+    bleibt ausserhalb der verdickten Linie unveraendert.
+    """
+    import numpy as np
+    from PIL import Image, ImageFilter
+
+    arr = np.array(img)
+    L = np.array(img.convert("L"))
+    alpha = arr[:, :, 3]
+    ink = ((L <= 100) & (alpha >= 128)).astype("uint8") * 255
+    dilated = np.array(Image.fromarray(ink, "L").filter(ImageFilter.MaxFilter(px * 2 + 1)))
+    new_ink = (dilated > 0) & (ink == 0)
+    out = arr.copy()
+    out[new_ink] = [0, 0, 0, 255]
+    return Image.fromarray(out, "RGBA")
+
+
 def _img_to_svg_traced(src, dst, **kw):
     """Bild (Raster: PNG/JPEG/...) → SVG durch Vektorisierung/Nachzeichnen
     (vtracer). Kein simples Umbenennen: das Bild wird zuerst nach Farbe in
@@ -381,6 +402,10 @@ def _img_to_svg_traced(src, dst, **kw):
                  fuer Logos/Strichzeichnungen, ungeeignet fuer Fotos).
                  Ohne explizite Angabe wird das automatisch anhand des
                  Bildinhalts entschieden (siehe _looks_like_lineart).
+      thicken_px: wie viele Pixel duenne Linien vor dem Nachzeichnen
+                 verdickt werden (kraeftigere, klarer lesbare Linien statt
+                 Haarlinien). Default 2 bei erkannter Strichzeichnung, sonst
+                 0. Auf 0 setzen um die Original-Linienstaerke zu behalten.
       mode: "spline" (Default, glatte Kurven), "polygon" (gerade Kanten,
             oft besser fuer Pixel-Art) oder "none" (nur Eckpunkte)
       hierarchical, filter_speckle, color_precision, layer_difference,
@@ -405,10 +430,16 @@ def _img_to_svg_traced(src, dst, **kw):
     r, g, b, a = img.split()
     a = a.point(lambda p: 255 if p >= 128 else 0)
     img = Image.merge("RGBA", (r, g, b, a))
+
+    is_lineart = _looks_like_lineart(img)
+    default_colormode = "binary" if is_lineart else "color"
+
+    thicken_px = int(kw.get("thicken_px", 2 if is_lineart else 0))
+    if thicken_px > 0:
+        img = _thicken_lineart(img, thicken_px)
+
     vtracer_input = str(Path(dst).with_suffix(".src.png"))
     img.save(vtracer_input)
-
-    default_colormode = "binary" if _looks_like_lineart(img) else "color"
 
     vtracer.convert_image_to_svg_py(
         vtracer_input,
