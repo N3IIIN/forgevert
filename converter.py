@@ -332,6 +332,43 @@ def _svg_to_png(src, dst, **kw):
     except ImportError:
         raise RuntimeError("SVG→PNG: pip install cairosvg  oder  inkscape installieren")
 
+def _looks_like_lineart(img):
+    """Heuristik: ist das Bild eine (fast) reine Schwarz/Weiss/Grau-
+    Strichzeichnung (Cookie-Cutter-Umrisse, Logos, Sticker, Malvorlagen)
+    oder tatsaechlich farbiger Inhalt (Fotos, bunte Logos)?
+
+    Grund: vtracers Farbmodus behandelt jeden leicht unterschiedlichen
+    Grauton entlang antialiaster Linien als eigene Fuellfarbe und erzeugt
+    dadurch einen unerwuenschten grauen Schleier + verschmierte, zu dicke
+    Linien - im Vergleich zum Original sichtbar unsauberer. Der Binaermodus
+    (reines Schwarz/Weiss, ein Grenzwert) trifft reine Strichzeichnungen
+    dagegen fast pixelgenau, waere aber bei echten Farbbildern falsch
+    (wuerde jede Farbe verlieren) - deshalb nur aktivieren, wenn praktisch
+    alle sichtbaren Pixel geringe Saettigung haben (Graustufen).
+
+    Zusaetzliche Bedingung: vtracers Binaermodus faerbt die erkannten
+    Formen immer schwarz ein, unabhaengig von der Originalfarbe der Linie.
+    Ohne weitere Pruefung wuerde z.B. ein weisses Icon auf transparentem
+    Hintergrund (auch "graustufig" nach obigem Test) unbemerkt schwarz
+    eingefaerbt werden. Binaermodus daher nur aktivieren, wenn tatsaechlich
+    dunkle Tinte im Bild vorkommt (die Faerbung also ohnehin schon schwarz
+    sein soll).
+    """
+    small = img.convert("RGBA").resize((128, 128))
+    opaque = [(r, g, b) for r, g, b, a in small.getdata() if a >= 128]
+    if not opaque:
+        return False
+    grayish = [(r, g, b) for r, g, b in opaque if max(r, g, b) - min(r, g, b) <= 24]
+    if (len(grayish) / len(opaque)) < 0.98:
+        return False
+    # Absolute statt relative Schwelle: bei duennen Linien auf viel Weissraum
+    # (z.B. mehrere kleine Motive verteilt auf einer grossen Leinwand) waere
+    # dunkle Tinte sonst nur ein winziger Bruchteil der Gesamtflaeche, obwohl
+    # eindeutig eine Strichzeichnung vorliegt.
+    dark = sum(1 for r, g, b in grayish if (r + g + b) / 3 <= 100)
+    return dark >= 20
+
+
 def _img_to_svg_traced(src, dst, **kw):
     """Bild (Raster: PNG/JPEG/...) → SVG durch Vektorisierung/Nachzeichnen
     (vtracer). Kein simples Umbenennen: das Bild wird zuerst nach Farbe in
@@ -340,8 +377,10 @@ def _img_to_svg_traced(src, dst, **kw):
     Bildkomplexitaet und den Parametern unten ab.
 
     Optionale kw-Parameter (vtracer-Standardwerte als Fallback):
-      colormode: "color" (Default) oder "binary" (nur 1 Farbe - schneller,
-                 sauberer fuer Logos/Strichzeichnungen, ungeeignet fuer Fotos)
+      colormode: "color" oder "binary" (nur 1 Farbe - schneller, sauberer
+                 fuer Logos/Strichzeichnungen, ungeeignet fuer Fotos).
+                 Ohne explizite Angabe wird das automatisch anhand des
+                 Bildinhalts entschieden (siehe _looks_like_lineart).
       mode: "spline" (Default, glatte Kurven), "polygon" (gerade Kanten,
             oft besser fuer Pixel-Art) oder "none" (nur Eckpunkte)
       hierarchical, filter_speckle, color_precision, layer_difference,
@@ -369,10 +408,12 @@ def _img_to_svg_traced(src, dst, **kw):
     vtracer_input = str(Path(dst).with_suffix(".src.png"))
     img.save(vtracer_input)
 
+    default_colormode = "binary" if _looks_like_lineart(img) else "color"
+
     vtracer.convert_image_to_svg_py(
         vtracer_input,
         dst,
-        colormode=kw.get("colormode", "color"),
+        colormode=kw.get("colormode", default_colormode),
         hierarchical=kw.get("hierarchical", "stacked"),
         mode=kw.get("mode", "spline"),
         filter_speckle=int(kw.get("filter_speckle", 4)),
