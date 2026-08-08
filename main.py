@@ -445,6 +445,10 @@ def sitemap_xml():
 def google_verify():
     return PlainTextResponse("google-site-verification: google23d8b4fd8017a741.html")
 
+@app.get("/formate", include_in_schema=False)
+def formate_page():
+    return FileResponse(_static / "formate.html")
+
 # ── Statisches Frontend ───────────────────────────────────────────────────────
 if _static.exists():
     app.mount("/", StaticFiles(directory=str(_static), html=True), name="static")

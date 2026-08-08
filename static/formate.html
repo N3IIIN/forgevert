@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alle Dateiformate durchsuchen — 150+ Formate | Forgevert</title>
+
+<!-- SEO -->
+<meta name="description" content="Alle 150+ von Forgevert unterstützten Dateiformate durchsuchen und filtern: Bilder, Video, Audio, Dokumente, 3D/CAD, Stickerei, GIS, Schriften, PCB/G-Code und mehr — kostenlos konvertieren.">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Forgevert">
+<link rel="canonical" href="https://forgevert.onrender.com/formate">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Alle Dateiformate — Forgevert">
+<meta property="og:description" content="150+ Formate durchsuchen und filtern: Bilder, Video, Audio, Dokumente, 3D/CAD, Stickerei, GIS und mehr.">
+<meta property="og:url" content="https://forgevert.onrender.com/formate">
+<meta property="og:site_name" content="Forgevert">
+
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <a class="logo" href="/">
+    <div class="logo-mark">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+        <defs>
+          <linearGradient id="fg-outer" x1="0%" y1="100%" x2="30%" y2="0%">
+            <stop offset="0%" stop-color="#C0380A"/>
+            <stop offset="45%" stop-color="#FF6B00"/>
+            <stop offset="100%" stop-color="#FFD000"/>
+          </linearGradient>
+          <linearGradient id="fg-inner" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stop-color="#FFB347"/>
+            <stop offset="100%" stop-color="#FFF4A0"/>
+          </linearGradient>
+          <radialGradient id="fg-eye" cx="40%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#FF3300"/>
+            <stop offset="100%" stop-color="#8B0000"/>
+          </radialGradient>
+        </defs>
+        <path d="M16 2 C16 2 9 9 9.5 17 C9.8 21.5 12.5 26.5 16 29 C19.5 26.5 22.2 21.5 22.5 17 C23 9 16 2 16 2Z" fill="url(#fg-outer)"/>
+        <path d="M12 10 C10 12 8 16 9.5 20 C9 16 11 11 12 10Z" fill="#FF6B00" opacity="0.75"/>
+        <path d="M20 10 C22 12 24 16 22.5 20 C23 16 21 11 20 10Z" fill="#FF6B00" opacity="0.75"/>
+        <path d="M16 7 C16 7 19.5 12 19 17.5 C18.6 21 17.2 24.5 16 26.5 C14.8 24.5 13.4 21 13 17.5 C12.5 12 16 7 16 7Z" fill="url(#fg-inner)" opacity="0.92"/>
+        <ellipse cx="13.2" cy="19.5" rx="2.0" ry="1.7" fill="white"/>
+        <ellipse cx="18.8" cy="19.5" rx="2.0" ry="1.7" fill="white"/>
+        <circle cx="13.6" cy="19.7" r="1.1" fill="url(#fg-eye)"/>
+        <circle cx="19.2" cy="19.7" r="1.1" fill="url(#fg-eye)"/>
+        <circle cx="13.1" cy="19.2" r="0.42" fill="white" opacity="0.85"/>
+        <circle cx="18.7" cy="19.2" r="0.42" fill="white" opacity="0.85"/>
+        <ellipse cx="16" cy="4" rx="2" ry="2.5" fill="#FFE066" opacity="0.55"/>
+      </svg>
+    </div>
+    Forgevert
+  </a>
+  <nav class="header-nav">
+    <a href="/formate?cat=image">Bilder</a>
+    <a href="/formate?cat=audio">Audio</a>
+    <a href="/formate?cat=video">Video</a>
+    <a href="/formate?cat=doc">Dokumente</a>
+    <a href="/formate?cat=3d">3D</a>
+  </nav>
+  <div class="header-actions">
+    <button class="icon-btn" id="theme-btn" title="Theme wechseln" onclick="toggleTheme()">
+      <span id="theme-icon">☀</span>
+    </button>
+  </div>
+</header>
+
+<div class="catalog-wrap">
+
+  <section class="catalog-hero">
+    <span class="eyebrow">🔍 Format-Katalog</span>
+    <h1>Alle Formate. Durchsuchbar.</h1>
+    <p>167 Formate in 16 Kategorien — tippe zum Suchen oder filtere nach Kategorie. Klick auf ein Format, um direkt eine Datei dorthin zu konvertieren.</p>
+  </section>
+
+  <div class="catalog-search-bar">
+    <span class="icon">🔍</span>
+    <input id="fmt-search" type="text" placeholder="Format suchen — z.B. &quot;dst&quot;, &quot;vektor&quot; oder &quot;stickdatei&quot;…" autocomplete="off">
+    <span class="catalog-count" id="fmt-count"></span>
+  </div>
+
+  <div class="catalog-cat-chips" id="cat-chips"></div>
+
+  <div id="catalog-groups"></div>
+  <div class="catalog-empty" id="catalog-empty">Kein Format gefunden. Versuch einen anderen Suchbegriff.</div>
+
+</div>
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="/" style="text-decoration:none">
+        <div class="logo-mark">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+            <defs>
+              <linearGradient id="fg-outer2" x1="0%" y1="100%" x2="30%" y2="0%">
+                <stop offset="0%" stop-color="#C0380A"/>
+                <stop offset="45%" stop-color="#FF6B00"/>
+                <stop offset="100%" stop-color="#FFD000"/>
+              </linearGradient>
+              <linearGradient id="fg-inner2" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#FFB347"/>
+                <stop offset="100%" stop-color="#FFF4A0"/>
+              </linearGradient>
+              <radialGradient id="fg-eye2" cx="40%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="#FF3300"/>
+                <stop offset="100%" stop-color="#8B0000"/>
+              </radialGradient>
+            </defs>
+            <path d="M16 2 C16 2 9 9 9.5 17 C9.8 21.5 12.5 26.5 16 29 C19.5 26.5 22.2 21.5 22.5 17 C23 9 16 2 16 2Z" fill="url(#fg-outer2)"/>
+            <path d="M12 10 C10 12 8 16 9.5 20 C9 16 11 11 12 10Z" fill="#FF6B00" opacity="0.75"/>
+            <path d="M20 10 C22 12 24 16 22.5 20 C23 16 21 11 20 10Z" fill="#FF6B00" opacity="0.75"/>
+            <path d="M16 7 C16 7 19.5 12 19 17.5 C18.6 21 17.2 24.5 16 26.5 C14.8 24.5 13.4 21 13 17.5 C12.5 12 16 7 16 7Z" fill="url(#fg-inner2)" opacity="0.92"/>
+            <ellipse cx="13.2" cy="19.5" rx="2.0" ry="1.7" fill="white"/>
+            <ellipse cx="18.8" cy="19.5" rx="2.0" ry="1.7" fill="white"/>
+            <circle cx="13.6" cy="19.7" r="1.1" fill="url(#fg-eye2)"/>
+            <circle cx="19.2" cy="19.7" r="1.1" fill="url(#fg-eye2)"/>
+            <circle cx="13.1" cy="19.2" r="0.42" fill="white" opacity="0.85"/>
+            <circle cx="18.7" cy="19.2" r="0.42" fill="white" opacity="0.85"/>
+            <ellipse cx="16" cy="4" rx="2" ry="2.5" fill="#FFE066" opacity="0.55"/>
+          </svg>
+        </div>
+        Forgevert
+      </a>
+      <p class="footer-tagline">Kostenloser Online File Converter · 150+ Formate</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <span class="footer-col-title">Tool</span>
+        <a href="/">Converter</a>
+        <a href="https://github.com/N3IIIN/forgevert" target="_blank">GitHub</a>
+      </div>
+      <div class="footer-col">
+        <span class="footer-col-title">Formate</span>
+        <a href="/formate?cat=image">Bilder</a>
+        <a href="/formate?cat=audio">Audio</a>
+        <a href="/formate?cat=video">Video</a>
+        <a href="/formate?cat=doc">Dokumente</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Forgevert · Alle Rechte vorbehalten</span>
+  </div>
+</footer>
+
+<script src="/formats-data.js"></script>
+<script>
+(function initTheme() {
+  const saved = localStorage.getItem('converter-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('theme-icon').textContent = theme === 'dark' ? '☀' : '☾';
+})();
+function toggleTheme() {
+  const root = document.documentElement;
+  const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  document.getElementById('theme-icon').textContent = next === 'dark' ? '☀' : '☾';
+  localStorage.setItem('converter-theme', next);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Katalog aufbauen — direkt aus CATS/CAT_DESC (formats-data.js), immer
+// synchron mit dem Rest der App.
+// ══════════════════════════════════════════════════════════════════════════
+const groupsEl = document.getElementById('catalog-groups');
+const chipsEl  = document.getElementById('cat-chips');
+const emptyEl  = document.getElementById('catalog-empty');
+const countEl  = document.getElementById('fmt-count');
+const totalFmts = CATS.reduce((n, c) => n + c.fmts.length, 0);
+
+let activeCat = 'alle';
+
+function buildChips() {
+  const all = document.createElement('button');
+  all.className = 'cat-chip active';
+  all.textContent = 'Alle';
+  all.dataset.cat = 'alle';
+  chipsEl.appendChild(all);
+  CATS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-chip';
+    btn.textContent = c.label;
+    btn.dataset.cat = c.key;
+    btn.style.setProperty('--cc', c.color);
+    chipsEl.appendChild(btn);
+  });
+  chipsEl.addEventListener('click', e => {
+    const btn = e.target.closest('.cat-chip');
+    if (!btn) return;
+    activeCat = btn.dataset.cat;
+    chipsEl.querySelectorAll('.cat-chip').forEach(b => b.classList.toggle('active', b === btn));
+    applyFilter();
+  });
+}
+
+function buildGroups() {
+  CATS.forEach(c => {
+    const group = document.createElement('section');
+    group.className = 'catalog-cat-group';
+    group.dataset.cat = c.key;
+
+    const heading = document.createElement('div');
+    heading.className = 'catalog-cat-heading';
+    heading.innerHTML = `
+      <span class="catalog-cat-dot" style="--cc:${c.color}"></span>
+      <span class="catalog-cat-name" style="--cc:${c.color}">${c.label}</span>
+      <span class="catalog-cat-count">${c.fmts.length}</span>
+    `;
+    group.appendChild(heading);
+
+    if (CAT_DESC[c.key]) {
+      const desc = document.createElement('p');
+      desc.className = 'catalog-cat-desc';
+      desc.textContent = CAT_DESC[c.key];
+      group.appendChild(desc);
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'catalog-fmt-grid';
+    c.fmts.forEach(f => {
+      const card = document.createElement('button');
+      card.className = 'fmt-card';
+      card.style.setProperty('--cc', c.color);
+      card.dataset.fmt = f;
+      card.innerHTML = `<div class="fmt-card-code">${f.toUpperCase()}</div><div class="fmt-card-hint">→ konvertieren</div>`;
+      card.addEventListener('click', () => {
+        sessionStorage.setItem('quickTarget', f);
+        location.href = '/';
+      });
+      grid.appendChild(card);
+    });
+    group.appendChild(grid);
+    groupsEl.appendChild(group);
+  });
+}
+
+function applyFilter() {
+  const q = fmtSearch.value.trim().toLowerCase();
+  let anyVisible = false;
+
+  CATS.forEach(c => {
+    const group = groupsEl.querySelector(`.catalog-cat-group[data-cat="${c.key}"]`);
+    const catMatchesCat = activeCat === 'alle' || activeCat === c.key;
+    const catMatchesSearch = !q || c.label.toLowerCase().includes(q);
+
+    let visibleInGroup = 0;
+    group.querySelectorAll('.fmt-card').forEach(card => {
+      const fmt = card.dataset.fmt;
+      const matches = catMatchesCat && (catMatchesSearch || fmt.includes(q));
+      card.classList.toggle('is-hidden', !matches);
+      if (matches) visibleInGroup++;
+    });
+
+    const showGroup = visibleInGroup > 0;
+    group.classList.toggle('is-hidden', !showGroup);
+    if (showGroup) anyVisible = true;
+  });
+
+  emptyEl.classList.toggle('active', !anyVisible);
+
+  const visibleCount = groupsEl.querySelectorAll('.fmt-card:not(.is-hidden)').length;
+  countEl.textContent = q || activeCat !== 'alle' ? `${visibleCount} / ${totalFmts}` : `${totalFmts} Formate`;
+}
+
+buildChips();
+buildGroups();
+
+const fmtSearch = document.getElementById('fmt-search');
+fmtSearch.addEventListener('input', applyFilter);
+
+// Kategorie aus ?cat=... vorauswählen (z.B. von Footer/Header-Links)
+const presetCat = new URLSearchParams(location.search).get('cat');
+if (presetCat && CATS.some(c => c.key === presetCat)) {
+  activeCat = presetCat;
+  const btn = chipsEl.querySelector(`.cat-chip[data-cat="${presetCat}"]`);
+  chipsEl.querySelectorAll('.cat-chip').forEach(b => b.classList.toggle('active', b === btn));
+}
+
+applyFilter();
+</script>
+</body>
+</html>
