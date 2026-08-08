@@ -370,11 +370,17 @@ def _looks_like_lineart(img):
 
 
 def _thicken_lineart(img, px):
-    """Verdickt dunkle Tinte um `px` Pixel (morphologische Dilation), damit
-    duenne Strichzeichnungen als kraeftige, klar lesbare Linien nachgezeichnet
-    werden statt als Haarlinien. Faerbt nur die neu hinzukommenden Rand-Pixel
-    schwarz ein - der urspruengliche Hintergrund (transparent oder opak weiss)
-    bleibt ausserhalb der verdickten Linie unveraendert.
+    """Verdickt dunkle Tinte um `px` Pixel, damit duenne Strichzeichnungen als
+    kraeftige, klar lesbare Linien nachgezeichnet werden statt als
+    Haarlinien. Faerbt nur die neu hinzukommenden Rand-Pixel schwarz ein -
+    der urspruengliche Hintergrund (transparent oder opak weiss) bleibt
+    ausserhalb der verdickten Linie unveraendert.
+
+    Wichtig: reine Box-Dilation (quadratisches Fenster) macht Kurven ab ca.
+    4px sichtbar treppig/eckig statt gleichmaessig rund - deshalb wird nach
+    der Dilation zusaetzlich weichgezeichnet und neu geschwellt, was die
+    eckigen Kanten des Box-Kernels rundet. Ergebnis bleibt bei jeder Staerke
+    eine gleichmaessige Linie ohne ausgefranste/pixelige Raender.
     """
     import numpy as np
     from PIL import Image, ImageFilter
@@ -383,8 +389,11 @@ def _thicken_lineart(img, px):
     L = np.array(img.convert("L"))
     alpha = arr[:, :, 3]
     ink = ((L <= 100) & (alpha >= 128)).astype("uint8") * 255
-    dilated = np.array(Image.fromarray(ink, "L").filter(ImageFilter.MaxFilter(px * 2 + 1)))
-    new_ink = (dilated > 0) & (ink == 0)
+    ink_img = Image.fromarray(ink, "L")
+    dilated = ink_img.filter(ImageFilter.MaxFilter(px * 2 + 1))
+    rounded = dilated.filter(ImageFilter.GaussianBlur(radius=max(px * 0.6, 0.8)))
+    rounded = np.array(rounded.point(lambda p: 255 if p >= 128 else 0))
+    new_ink = (rounded > 0) & (ink == 0)
     out = arr.copy()
     out[new_ink] = [0, 0, 0, 255]
     return Image.fromarray(out, "RGBA")

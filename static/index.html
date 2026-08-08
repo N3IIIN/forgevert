@@ -1468,6 +1468,22 @@ kbd {
       </div>
     </div>
 
+    <div id="svg-panel" class="quality-panel hidden">
+      <div class="qp-header">
+        <span class="qp-badge">🖊 Linienstärke</span>
+      </div>
+      <div class="qp-body">
+        <div class="qp-row">
+          <label class="qp-label">Dicke</label>
+          <input type="range" id="svg-thicken" min="0" max="6" value="2" step="1" class="qp-slider"
+            oninput="document.getElementById('svg-thicken-val').textContent = this.value == 0 ? 'Original' : this.value + ' px'">
+          <span id="svg-thicken-val" class="qp-val">2 px</span>
+        </div>
+        <div class="qp-hint">0 = Originalstärke der Linien. Höhere Werte = kräftigere, klar lesbare Linien (rund, ohne Ausfransung) - bei sehr hohen Werten können eng beieinanderliegende Linien (z.B. doppelte Umrisse) zusammenlaufen.</div>
+        <button id="svg-convert-btn" class="btn-dl" style="margin-top:0.3rem;width:100%" onclick="startConvert('svg')">→ Konvertieren zu SVG</button>
+      </div>
+    </div>
+
     <div class="targets-heading">Konvertieren zu</div>
     <div id="targets-container">
       <div style="color:var(--muted);font-size:0.85rem">Lade Formate…</div>
@@ -1931,6 +1947,7 @@ async function handleFile(file) {
   document.getElementById('embd-panel').classList.toggle('hidden', !isEmbd);
   document.getElementById('gcode-panel').classList.toggle('hidden', !isGCode);
   document.getElementById('quality-panel').classList.add('hidden'); // wird von loadTargets aktiviert
+  document.getElementById('svg-panel').classList.add('hidden'); // wird von loadTargets aktiviert
 
   if (isEmbd) {
     setText('embd-fmt-hint', currentFmt.toUpperCase());
@@ -2130,10 +2147,15 @@ async function loadEmbroideryPreview(file) {
 // Quality Panel
 // ══════════════════════════════════════════════════════════════════════════
 const QUALITY_FMTS = new Set(['jpeg','webp','png']);
+// Muss mit converter.py::_IMG_FMTS uebereinstimmen (Formate, die ueber
+// vtracer nach SVG vektorisiert werden - dort greift die Linienstaerke).
+const IMG_TO_SVG_FMTS = new Set(['jpeg','png','gif','bmp','tiff','webp','ico','tga','pcx','ppm','pgm','pbm']);
 
 function selectTarget(fmt) {
   const qp = document.getElementById('quality-panel');
+  const sp = document.getElementById('svg-panel');
   if (QUALITY_FMTS.has(fmt)) {
+    sp.classList.add('hidden');
     setText('qp-fmt-hint', fmt.toUpperCase());
     qp.classList.remove('hidden');
     // Scroll to panel
@@ -2151,8 +2173,13 @@ function selectTarget(fmt) {
       document.querySelector('.qp-body').appendChild(btn);
     }
     btn.textContent = `→ Konvertieren zu ${fmt.toUpperCase()}`;
+  } else if (fmt === 'svg' && IMG_TO_SVG_FMTS.has(currentFmt)) {
+    qp.classList.add('hidden');
+    sp.classList.remove('hidden');
+    sp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } else {
     qp.classList.add('hidden');
+    sp.classList.add('hidden');
     startConvert(fmt);
   }
 }
@@ -2544,6 +2571,12 @@ async function startConvert(targetFmt) {
     if (h && h.value) fd.append('resize_h', h.value);
   }
 
+  // Linienstaerke (nur wenn Panel sichtbar, d.h. Bild → SVG)
+  if (targetFmt === 'svg' && IMG_TO_SVG_FMTS.has(currentFmt)) {
+    const t = document.getElementById('svg-thicken');
+    if (t) fd.append('svg_thicken_px', t.value);
+  }
+
   let data;
   try {
     const r = await fetch('/api/convert', { method: 'POST', body: fd });
@@ -2638,6 +2671,7 @@ function reset() {
   document.getElementById('embd-panel').classList.add('hidden');
   document.getElementById('gcode-panel').classList.add('hidden');
   document.getElementById('quality-panel').classList.add('hidden');
+  document.getElementById('svg-panel').classList.add('hidden');
   document.getElementById('batch-result-section').classList.add('hidden');
   showState('state-empty');
 }
