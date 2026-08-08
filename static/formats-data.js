@@ -68,10 +68,11 @@ function fmtBytes(n) {
 }
 
 function catIcon(key) {
-  const m = { image:'🖼', raw:'📷', audio:'🎵', video:'🎬', data:'📊', doc:'📄',
-               '3d':'🔷', embd:'🧵', gis:'🌍', font:'🔤', med:'🏥', pcb:'🔌',
-               arch:'🗜', pim:'📇', sub:'💬', mol:'🧪' };
-  return m[key] || '📁';
+  const ids = { image:'i-cat-image', raw:'i-cat-raw', audio:'i-cat-audio', video:'i-cat-video',
+                data:'i-cat-data', doc:'i-cat-doc', '3d':'i-cat-3d', embd:'i-cat-embd',
+                gis:'i-cat-gis', font:'i-cat-font', med:'i-cat-med', pcb:'i-cat-pcb',
+                arch:'i-cat-arch', pim:'i-cat-pim', sub:'i-cat-sub', mol:'i-cat-mol' };
+  return `<svg class="icon"><use href="#${ids[key] || 'i-folder'}"/></svg>`;
 }
 
 function hexAlpha(cssVar, alpha) {
